@@ -1,0 +1,90 @@
+txn_type,category,sub_category
+Expense,Bank,Fees
+Expense,Bill payment,Apple
+Expense,Bill payment,Electricity
+Expense,Bill payment,Gas
+Expense,Bill payment,Internet
+Expense,Bill payment,Mobile
+Expense,Carwash,Pune
+Expense,Cash,ATM
+Expense,Donation,Donation
+Expense,Education,Guitar class
+Expense,Family,Dad
+Expense,Fintoo,Fintoo
+Expense,Food,Dinning
+Expense,Food,Juice
+Expense,Food,Snacks
+Expense,Groceries,Fruits
+Expense,Groceries,Groceries
+Expense,Groceries,Milk
+Expense,Health,Dental
+Expense,Health,Haircut
+Expense,Health,Hospital
+Expense,Health,Medical Test
+Expense,Health,Medicine
+Expense,Health,OPD
+Expense,Health,Skin
+Expense,Home Renovation,Pardi
+Expense,Insurance,Car
+Expense,Insurance,LIC
+Expense,Insurance,Term
+Expense,Land Purchase,Velhe
+Expense,Lifestyle,Bar
+Expense,Lifestyle,Coffee
+Expense,Lifestyle,Drinks
+Expense,Lifestyle,Gamezone
+Expense,Lifestyle,Jewellery
+Expense,Lifestyle,Movie
+Expense,Lifestyle,OTT
+Expense,Lifestyle,Parlour
+Expense,Maintenance,Car
+Expense,Maintenance,Computer
+Expense,Maintenance,Kharghar
+Expense,Rent,Pune
+Expense,School fees,Prisha
+Expense,School fees,Tanushree
+Expense,Servant,Pune
+Expense,Shopping,Amazon
+Expense,Shopping,Book
+Expense,Shopping,Clothes
+Expense,Shopping,Cycle
+Expense,Shopping,Electronics
+Expense,Shopping,Gift
+Expense,Shopping,Household
+Expense,Shopping,Mobile
+Expense,Shopping,Novelty
+Expense,Shopping,Stationery
+Expense,Shopping,Utensil
+Expense,Travel,Bus
+Expense,Travel,Cab
+Expense,Travel,Fasttag
+Expense,Travel,Flight
+Expense,Travel,Fuel
+Expense,Travel,Hotel
+Income,Bank,Fees Waiver
+Income,Creditcard,Cashback
+Income,Dividend,Dividend
+Income,Mutual Fund,Withdrawal
+Income,Rent,Kharghar
+Income,Salary,Finastra
+Income,Saving Account,Interest
+Investment,Mutual Fund,SIP
+Investment,SSY,Prisha
+Investment,SSY,Tanushree
+Transfer,A/c to A/c,Angelone
+Transfer,A/c to A/c,Ashish
+Transfer,A/c to A/c,Chintan
+Transfer,A/c to A/c,Creditcard
+Transfer,A/c to A/c,Google
+Transfer,A/c to A/c,Ilaxi
+Transfer,A/c to A/c,Neeta
+Transfer,A/c to A/c,Nimishaben
+Transfer,A/c to A/c,Pallavi
+Transfer,A/c to A/c,Prisha
+Transfer,A/c to A/c,Renuka
+Transfer,A/c to A/c,SBI
+Transfer,A/c to A/c,Sunil
+Transfer,A/c to A/c,Tanushree
+Transfer,A/c to A/c,Unknown
+Transfer,A/c to A/c,Vicky
+Transfer,A/c to A/c,Zerodha

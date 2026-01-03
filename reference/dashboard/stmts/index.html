@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Accounts Dashboard</title>
+	<meta name="description" content="The accounts dashboard application is an intuitive dashboard with interactive widgets and excellent drill down capabilities that gives critical insight of cashflow.">
+	<!-- Bootstrap CSS -->
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+	<!-- Material Design Icons -->
+	<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!-- noUiSlider CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.0/nouislider.min.css" rel="stylesheet">
+	<!-- Google API JS -->
+	<script src="https://apis.google.com/js/api.js"></script>
+	<script src="https://accounts.google.com/gsi/client" async defer></script>
+	<style>
+		body { background: #f5f5f5; }
+		.dashboard-header { background: #1976d2; color: #fff; padding: 1rem; }
+		.widget { background: #fff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 0.5rem; padding: 0.5rem; min-height: 100%;}
+		.slicer-range { padding-left: 1rem; padding-right: 1rem; }
+
+		/* Responsive adjustments */
+		@media (max-width: 576px) {
+			.dashboard-header h1 { font-size: 1rem; }
+			/* reduce header vertical padding on small phones */
+			.dashboard-header { padding: .5rem; }
+			.widget { padding: 1rem; margin-bottom: 1rem; }
+			/* ensure row has vertical gap between stacked columns */
+			.row { row-gap: 1rem; }
+			#timeseries-slicer .d-flex { flex-direction: column; align-items: stretch; gap: .5rem; }
+			#slicer-granularity { width: 100% !important; }
+			#slicer-apply { width: 100%; }
+			#slicer-slider { margin-top: .25rem; }
+			#investment-content div, #income-content div, #expenses-content div { font-size: 0.95rem; }
+			/* Reduce widget content height on small screens */
+			#investment-content > div, #income-content > div, #expenses-content > div { max-height: 180px !important; }
+
+			/* Compact mobile widget card */
+			.widget.compact .widget-title { display: none; }
+			.widget.compact .compact-card { display: block; padding: .5rem; }
+			.widget .compact-card { display: none; }
+			.compact-spark { font-family: monospace; font-size: 0.85rem; color: #666; }
+			/* Make load-more links bigger for touch */
+			.text-end a { padding: .5rem .75rem; display: inline-block; }
+		}
+	</style>
+</head>
+<body>
+	<header class="dashboard-header d-flex align-items-center justify-content-between">
+		<h1 class="h3 mb-0"><span class="material-icons">dashboard</span> Accounts Dashboard</h1>
+		<!-- desktop: show inline user info on sm+; mobile: show a dropdown menu -->
+		<div id="user-info" class="d-none d-sm-flex align-items-center"></div>
+		<div id="user-menu" class="dropdown d-flex d-sm-none align-items-center">
+			<button class="btn btn-light btn-sm" id="userMenuBtn" data-bs-toggle="dropdown" aria-expanded="false">
+				<span class="material-icons">account_circle</span>
+			</button>
+			<ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenuBtn" id="user-menu-body">
+				<!-- mobile user content populated by JS -->
+			</ul>
+		</div>
+	</header>
+	<main class="container py-4">
+		<div id="auth-section" class="mb-4 text-center">
+			<button id="login-btn" class="btn btn-primary"><span class="material-icons">login</span> Sign in with Google</button>
+		</div>
+		<div id="dashboard" style="display:none;">
+			<!-- Time-series slicer -->
+			<div id="timeseries-slicer" class="widget mb-4">
+				<div class="d-flex align-items-left gap-3">
+					<label class="mb-0">Granularity:</label>
+					<select id="slicer-granularity" class="form-select form-select-sm" style="width:160px;">
+						<option value="year">Yearly</option>
+						<option value="quarter">Quarterly</option>
+						<option value="month">Monthly</option>
+					</select>
+					<div id="slicer-range" class="flex-grow-1 mt-4 ps-3 pe-3">
+						<div class="small text-muted d-none" id="slicer-range-label">Range: </div>
+						<div class="d-flex align-items-center gap-2 mt-1" style="width:100%;">
+							<div id="slicer-slider" style="width:100%;"></div>
+						</div>
+					</div>
+					<button id="slicer-apply" class="btn btn-primary btn-sm">Apply</button>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-md-6 col-lg-3">
+					<div class="widget" id="cashflow-widget">
+						<h5><span class="material-icons">account_balance_wallet</span> Cashflow <span class="badge bg-secondary ms-2" id="badge-Cashflow" style="display:none">0</span></h5>
+						<div id="cashflow-content"></div>
+					</div>
+				</div>
+				<div class="col-md-6 col-lg-3">
+					<div class="widget" id="investment-widget">
+						<h5><span class="material-icons">trending_up</span> Investment <span class="badge bg-secondary ms-2" id="badge-Investment" style="display:none">0</span></h5>
+						<div id="investment-content"></div>
+					</div>
+				</div>
+				<div class="col-md-6 col-lg-3">
+					<div class="widget" id="income-widget">
+						<h5><span class="material-icons">attach_money</span> Income <span class="badge bg-secondary ms-2" id="badge-Income" style="display:none">0</span></h5>
+						<div id="income-content"></div>
+					</div>
+				</div>
+				<div class="col-md-6 col-lg-3">
+					<div class="widget" id="expenses-widget">
+						<h5><span class="material-icons">money_off</span> Expenses <span class="badge bg-secondary ms-2" id="badge-Expenses" style="display:none">0</span></h5>
+						<div id="expenses-content"></div>
+					</div>
+				</div>
+			</div>
+			<div id="drilldown-section" class="mt-4"></div>
+		</div>
+	</main>
+	<!-- Bootstrap JS -->
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+	<!-- App JS -->
+	<script src="dashboard.js"></script>
+</body>
+</html>
