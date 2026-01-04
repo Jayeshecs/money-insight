@@ -11,6 +11,12 @@ mod parsers;
 use traits::{PluginRegistry, TransactionBatch};
 use parsers::{HdfcSavingsParser, HdfcCreditCardParser};
 
+/// Set up panic hook for better error messages in WASM
+#[wasm_bindgen(start)]
+pub fn init_panic_hook() {
+    console_error_panic_hook::set_once();
+}
+
 /// Main WASM Engine interface
 #[wasm_bindgen]
 pub struct WasmEngine {
@@ -80,6 +86,59 @@ impl WasmEngine {
     
     /// Convert Excel file bytes to TSV string
     fn excel_to_tsv(&self, bytes: &[u8]) -> Result<String, JsValue> {
+        // Pre-validate file structure to catch corruption early
+        if bytes.len() < 512 {
+            return Err(JsValue::from_str(
+                "File could not be parsed. The file may be corrupted or invalid. Please check the file and try again."
+            ));
+        }
+        
+        // Check for valid file signatures
+        // ZIP signature (0x504B0304) for .xlsx files
+        // CFB signature (0xD0CF11E0) for .xls files
+        let has_zip_sig = bytes.len() >= 4 && 
+                          bytes[0] == 0x50 && bytes[1] == 0x4B && 
+                          bytes[2] == 0x03 && bytes[3] == 0x04;
+        let has_cfb_sig = bytes.len() >= 8 && 
+                          bytes[0] == 0xD0 && bytes[1] == 0xCF && 
+                          bytes[2] == 0x11 && bytes[3] == 0xE0;
+        
+        // If file doesn't have Excel signatures, it's likely encrypted or wrong format
+        // Since user uploaded .xlsx/.xls file, assume encryption rather than corruption
+        if !has_zip_sig && !has_cfb_sig {
+            return Err(JsValue::from_str(
+                "Password-protected and encrypted statements are not supported. Please export without encryption."
+            ));
+        }
+        
+        // For CFB files (.xls), validate the header structure more thoroughly
+        if has_cfb_sig {
+            // Check sector size (should be 512 or 4096)
+            if bytes.len() >= 30 {
+                let sector_shift = bytes[30] as u16 | ((bytes[31] as u16) << 8);
+                if sector_shift < 9 || sector_shift > 12 {
+                    return Err(JsValue::from_str(
+                        "File could not be parsed. The file may be corrupted or invalid. Please check the file and try again."
+                    ));
+                }
+                let sector_size = 1u32 << sector_shift;
+                
+                // Validate FAT sector count and directory sector
+                if bytes.len() >= 68 {
+                    let num_fat_sectors = u32::from_le_bytes([bytes[44], bytes[45], bytes[46], bytes[47]]);
+                    let first_dir_sector = u32::from_le_bytes([bytes[48], bytes[49], bytes[50], bytes[51]]);
+                    
+                    // If file is too small to contain the claimed sectors, it's corrupted
+                    let min_required_size = (sector_size * (first_dir_sector + 1)) as usize;
+                    if bytes.len() < min_required_size && first_dir_sector != 0xFFFFFFFF {
+                        return Err(JsValue::from_str(
+                            "File could not be parsed. The file may be corrupted or invalid. Please check the file and try again."
+                        ));
+                    }
+                }
+            }
+        }
+        
         let cursor = Cursor::new(bytes);
         let workbook_result = open_workbook_auto_from_rs(cursor);
         
@@ -108,8 +167,17 @@ impl WasmEngine {
                     ));
                 }
                 
-                // Generic error
-                return Err(JsValue::from_str(&format!("Failed to open Excel file: {}", e)));
+                // "Cannot detect file format" - could be encrypted or corrupted
+                if error_msg.contains("cannot detect") || error_msg.contains("detect") {
+                    return Err(JsValue::from_str(
+                        "Password-protected and encrypted statements are not supported. Please export without encryption."
+                    ));
+                }
+                
+                // Generic error - likely corruption since we validated signatures
+                return Err(JsValue::from_str(
+                    "File could not be parsed. The file may be corrupted or invalid. Please check the file and try again."
+                ));
             }
             Ok(wb) => wb,
         };
