@@ -1,0 +1,10 @@
+# WASM build artifacts
+/pkg/
+/target/
+
+# Debug files
+**/*.rs.bk
+Cargo.lock
+
+# Test artifacts
+/wasm-pack.log
