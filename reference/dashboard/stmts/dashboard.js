@@ -2,8 +2,8 @@
 // Main JS for Accounts Dashboard SPA
 
 // Google API client config
-const CLIENT_ID = '634584714309-glnju0qta5thupmbnb1s2h4em0tuf9mf.apps.googleusercontent.com';
-const API_KEY = 'AIzaSyC3A3yUbIa5DmhPgrRqRanWr1DxB7gNWQY';
+const CLIENT_ID = '<your-oauth-client-id>.apps.googleusercontent.com';
+const API_KEY = '<your-api-key>';
 const DISCOVERY_DOCS = [
   'https://www.googleapis.com/discovery/v1/apis/drive/v3/rest',
   'https://sheets.googleapis.com/$discovery/rest?version=v4'
