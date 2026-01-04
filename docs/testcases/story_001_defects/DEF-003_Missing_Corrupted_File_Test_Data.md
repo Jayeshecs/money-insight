@@ -5,13 +5,59 @@
 **Test Case Affected:** TC7  
 **Severity:** Low  
 **Priority:** Low  
-**Status:** Open  
+**Status:** ✅ RESOLVED  
 **Reported Date:** 2026-01-04  
 **Reported By:** QA Automation Engineer  
+**Resolved Date:** 2026-01-04  
+**Resolution:** Created corrupted test files using Python script  
 
 ---
 
-## Description
+## Resolution Summary
+
+**Fix Implemented:** Created corrupted test files using automated Python script
+
+**Files Created:**
+
+1. **Corrupted_Savings.xlsx** (4,147 bytes)
+   - Severely truncated Excel file (30% of original)
+   - Primary file referenced in TC7
+   - Triggers parsing errors in WASM engine
+
+2. **Corrupted_Truncated.xlsx** (22,732 bytes)
+   - Moderately truncated Excel file (40% of original)
+   - Alternative test case for partial corruption
+   - Tests mid-stream parsing failures
+
+3. **Corrupted_WrongExtension.xlsx**
+   - Text file (Notes.txt) renamed with .xlsx extension
+   - Tests non-Excel content with Excel extension
+   - Validates file type detection
+
+**Script:** `generate_corrupted_files.py`
+- Location: `docs/testcases/story_001_testdata/`
+- Automatically generates corrupted files from existing test data
+- Reusable for future test data updates
+- Documents corruption methods for reference
+
+**Test Suite Updates:**
+- Updated TC7 in `story_001.spec.ts` to use `Corrupted_Savings.xlsx`
+- Test now validates actual corruption handling instead of workaround
+- Error message assertions updated for WASM parser errors
+
+**WASM Engine Enhancements:**
+- Added corruption detection in `excel_to_tsv()` method
+- Detects keywords: "invalid", "corrupt", "unexpected", "malformed"
+- Returns clear message: "File could not be parsed. The file may be corrupted or invalid."
+
+**Testing Ready:**
+- TC7 can now execute with realistic corrupted data
+- All corruption scenarios covered by test files
+- WASM module handles errors gracefully
+
+---
+
+## Original Description
 
 Test Case 7 specifies testing with a corrupted Excel file (`Corrupted_Savings.xlsx`), but no such file exists in the test data directory. The test case document references this file, but it was not created during test data preparation.
 

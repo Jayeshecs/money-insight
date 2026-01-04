@@ -54,12 +54,8 @@ export class FileUploadService {
       reader.onload = (event) => {
         const result = event.target?.result as ArrayBuffer;
         
-        // Check for Excel encryption signatures
-        if (this.isEncrypted(result, file)) {
-          reject(new Error('Password-protected and encrypted statements are not supported. Please export without encryption.'));
-          return;
-        }
-        
+        // Note: Encryption detection moved to WASM layer (calamine library)
+        // for more reliable detection when attempting to open the workbook
         resolve(result);
       };
       
@@ -70,25 +66,6 @@ export class FileUploadService {
       // Read as ArrayBuffer for all file types
       reader.readAsArrayBuffer(file);
     });
-  }
-
-  private isEncrypted(content: ArrayBuffer, file: File): boolean {
-    // Check for Excel encryption signatures
-    if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
-      // Check for encryption signatures in binary content
-      const bytes = new Uint8Array(content);
-      const text = new TextDecoder('utf-8', { fatal: false }).decode(bytes);
-      
-      const encryptionSignatures = [
-        'EncryptedPackage',
-        'EncryptionInfo',
-        'Microsoft.Container.EncryptionTransform'
-      ];
-      
-      return encryptionSignatures.some(sig => text.includes(sig));
-    }
-    
-    return false;
   }
 
   private getFileExtension(fileName: string): string {

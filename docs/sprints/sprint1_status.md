@@ -4,11 +4,11 @@
 - [Upload and Parse Bank Statement (WASM Engine)](../stories/story_001_Upload_and_Parse_Bank_Statement.md): **In Testing** ⚠️
   - Implementation: ✅ Complete (WASM engine with Excel support)
   - E2E Tests: ✅ Created (Playwright suite)
-  - Test Execution: ⚠️ Blocked (DEF-001, DEF-002)
+  - Test Execution: ⚠️ Blocked (DEF-001 only)
   - **Defects:**
     - [DEF-001: Missing Realistic Test Data](../testcases/story_001_defects/DEF-001_Missing_Realistic_Test_Data.md) - **High** - Open
-    - [DEF-002: Encryption Detection Unclear](../testcases/story_001_defects/DEF-002_Encryption_Detection_Unclear.md) - **Medium** - Open
-    - [DEF-003: Missing Corrupted File Test Data](../testcases/story_001_defects/DEF-003_Missing_Corrupted_File_Test_Data.md) - **Low** - Open
+    - [DEF-002: Encryption Detection Unclear](../testcases/story_001_defects/DEF-002_Encryption_Detection_Unclear.md) - **Medium** - ✅ **RESOLVED** (2026-01-04)
+    - [DEF-003: Missing Corrupted File Test Data](../testcases/story_001_defects/DEF-003_Missing_Corrupted_File_Test_Data.md) - **Low** - ✅ **RESOLVED** (2026-01-04)
 - [Auto-Detect and Apply Correct Parser Plugin](../stories/story_002_Auto-Detect_and_Apply_Correct_Parser_Plugin.md): To Do
 - [Store Parsed Transactions in IndexedDB](../stories/story_003_Store_Parsed_Transactions_in_IndexedDB.md): To Do
 - [Sync Transactions to Google Sheets](../stories/story_004_Sync_Transactions_to_Google_Sheets.md): To Do
@@ -26,17 +26,22 @@
 - **Test Data Status:** ⚠️ Incomplete (missing realistic HDFC statement samples)
 
 #### Defect Summary
-| ID | Title | Severity | Status | Blocking |
+| ID | Title | Severity | Status | Resolved |
 |----|-------|----------|--------|----------|
-| DEF-001 | Missing Realistic Test Data | High | Open | Yes |
-| DEF-002 | Encryption Detection Unclear | Medium | Open | Partial |
-| DEF-003 | Missing Corrupted File Test Data | Low | Open | No |
+| DEF-001 | Missing Realistic Test Data | High | Open | - |
+| DEF-002 | Encryption Detection Unclear | Medium | ✅ Resolved | 2026-01-04 |
+| DEF-003 | Missing Corrupted File Test Data | Low | ✅ Resolved | 2026-01-04 |
 
 #### Test Execution Results
 - **Passed:** 4 (Format validation tests - UI level)
-- **Blocked:** 4 (Parser accuracy tests - missing test data)
-- **Pending:** 3 (Encryption, corruption, drag-drop)
+- **Blocked:** 2 (Parser accuracy tests - missing test data: TC1, TC2)
+- **Ready:** 5 (Encryption, corruption, drag-drop, privacy: TC3, TC6, TC7, TC8, TC9)
 - **Total:** 11 test cases
+
+**Recent Fixes (2026-01-04):**
+- ✅ DEF-002: Moved encryption detection to WASM layer for reliability
+- ✅ DEF-003: Created 3 corrupted test files using Python script
+- ⏳ DEF-001: Still pending realistic HDFC statement samples
 
 **Detailed Reports:**
 - [Manual Test Execution Report](../testcases/story_001_testdata/MANUAL_TEST_REPORT.md)

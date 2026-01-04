@@ -81,8 +81,38 @@ impl WasmEngine {
     /// Convert Excel file bytes to TSV string
     fn excel_to_tsv(&self, bytes: &[u8]) -> Result<String, JsValue> {
         let cursor = Cursor::new(bytes);
-        let mut workbook = open_workbook_auto_from_rs(cursor)
-            .map_err(|e| JsValue::from_str(&format!("Failed to open Excel file: {}", e)))?;
+        let workbook_result = open_workbook_auto_from_rs(cursor);
+        
+        // Handle encryption and other open errors with specific messages
+        let mut workbook = match workbook_result {
+            Err(e) => {
+                let error_msg = e.to_string().to_lowercase();
+                
+                // Check for encryption/password protection
+                if error_msg.contains("password") || 
+                   error_msg.contains("encrypted") || 
+                   error_msg.contains("protection") ||
+                   error_msg.contains("cipher") {
+                    return Err(JsValue::from_str(
+                        "Password-protected and encrypted statements are not supported. Please export without encryption."
+                    ));
+                }
+                
+                // Check for corruption indicators
+                if error_msg.contains("invalid") || 
+                   error_msg.contains("corrupt") || 
+                   error_msg.contains("unexpected") ||
+                   error_msg.contains("malformed") {
+                    return Err(JsValue::from_str(
+                        "File could not be parsed. The file may be corrupted or invalid. Please check the file and try again."
+                    ));
+                }
+                
+                // Generic error
+                return Err(JsValue::from_str(&format!("Failed to open Excel file: {}", e)));
+            }
+            Ok(wb) => wb,
+        };
         
         // Get first worksheet
         let sheet_names = workbook.sheet_names();

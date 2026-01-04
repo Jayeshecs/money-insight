@@ -185,28 +185,24 @@ test.describe('Story #001: Upload and Parse Bank Statement', () => {
    * Objective: Verify that corrupted or malformed files are rejected with a clear error message.
    */
   test('TC7: Reject corrupted .xlsx file', async ({ page }) => {
-    // Create a corrupted file by using a text file renamed as xlsx
-    const filePath = path.join(TEST_DATA_DIR, 'Notes.txt'); // Using txt as corrupted xlsx
+    const filePath = path.join(TEST_DATA_DIR, 'Corrupted_Savings.xlsx');
     
     const fileInput = page.locator('input[type="file"]');
-    
-    // We need to set the file with a .xlsx extension
-    // For this test, we'll check if the parser can handle malformed Excel data
     await fileInput.setInputFiles(filePath);
     
-    // The system should show validation error (file extension check)
-    // OR parsing error if extension check passes
+    // Wait for error from WASM parser
     await page.waitForSelector('[data-testid="upload-error"]', { timeout: 10000 });
     
     const errorMessage = page.locator('[data-testid="upload-error"]');
     await expect(errorMessage).toBeVisible();
     
-    // Error should indicate either format issue or parsing failure
+    // Should show parsing/corruption error, not format validation error
     const errorText = await errorMessage.textContent();
     expect(
-      errorText?.includes('Only Excel') || 
-      errorText?.includes('could not be parsed') ||
-      errorText?.includes('Failed to open Excel file')
+      errorText?.toLowerCase().includes('could not be parsed') || 
+      errorText?.toLowerCase().includes('corrupted') ||
+      errorText?.toLowerCase().includes('invalid') ||
+      errorText?.toLowerCase().includes('failed to open')
     ).toBeTruthy();
   });
 
