@@ -12,7 +12,7 @@ MoneyInsight is a privacy-first, serverless personal finance platform. It enable
 ### 2.1 Ingestion & Intelligence Layer (WASM Engine)
 
 - **File Input:** Users can upload Excel (.xlsx/.xls) or CSV files exported from supported banks (e.g., HDFC Savings, HDFC Credit Card).
-- **Password Handling:** If a statement is password-protected, prompt the user for the password and decrypt client-side.
+- **Password Handling:** If a statement is password-protected, show error message to user indicating that encrypted and password protected statements are not supported.
 - **Plugin Architecture:** The Rust WASM engine uses a `Parser` trait. Each bank/format is a plugin implementing:
 	- `identify(&self, data: &str) -> bool`
 	- `parse(&self, data: &str) -> Vec<Transaction>`
@@ -57,7 +57,7 @@ MoneyInsight is a privacy-first, serverless personal finance platform. It enable
 ## 4. User Flow
 
 1. **Onboarding:** User logs in with Google, app creates a dedicated Google Sheet.
-2. **Import:** User uploads a statement, enters password if needed.
+2. **Import:** User uploads a statement that is **NOT** password protected.
 3. **Processing:** WASM engine parses and categorizes transactions, shows progress bar and ad.
 4. **Review:** User reviews/corrects categories, confidence indicators guide attention.
 5. **Sync & Train:** User syncs changes, rules are updated, model retrains, and data is pushed to Google Sheets.

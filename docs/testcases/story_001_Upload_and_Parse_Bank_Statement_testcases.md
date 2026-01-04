@@ -32,59 +32,75 @@
 
 ---
 
-### Test Case 3: Upload Password-Protected Statement
-**Objective:** Verify that the system prompts for a password and parses after correct entry.
+### Test Case 3: Reject Password-Protected Statement
+**Objective:** Verify that password-protected statements are rejected with a clear error message indicating they are not supported.
 
 #### Steps
 1. Navigate to the upload screen.
 2. Select a password-protected .xlsx file.
-3. Enter the correct password when prompted.
-4. Click upload.
+3. Attempt to upload.
 
 #### Test Data
-- HDFC_Savings_Protected.xlsx (password: test123)
+- HDFC_Savings_Protected.xlsx (password-protected)
 
 #### Expected Result
-- System prompts for password, parses file after correct entry, and displays transactions.
+- System displays a clear error message: "Password-protected and encrypted statements are not supported. Please export without encryption." Parsing does not occur and no data is processed.
 
 ---
 
-### Test Case 4: Upload Unsupported File Format
-**Objective:** Verify that unsupported file formats are rejected with a clear error message.
+### Test Case 4: Reject PDF File Format
+**Objective:** Verify that PDF files are rejected with a clear error message.
 
 #### Steps
 1. Navigate to the upload screen.
-2. Select a .pdf or .txt file.
-3. Click upload.
+2. Select a .pdf file.
+3. Attempt to upload.
 
 #### Test Data
 - Statement.pdf
-- Notes.txt
 
 #### Expected Result
-- System displays an error: "Only Excel (.xlsx/.xls) and CSV files are supported."
+- System displays a clear error message: "Only Excel (.xlsx/.xls) and CSV files are supported." Parsing does not occur and no data is processed.
 
 ---
 
-### Test Case 5: Upload File with Incorrect Password
-**Objective:** Verify that parsing fails and an error is shown if the wrong password is entered.
+### Test Case 5: Reject Unsupported File Formats
+**Objective:** Verify that unsupported file formats (other than PDF) are rejected with a clear error message.
 
 #### Steps
 1. Navigate to the upload screen.
-2. Select a password-protected .xlsx file.
-3. Enter an incorrect password when prompted.
-4. Click upload.
+2. Select a .txt, .doc, .json, or other non-Excel/CSV file.
+3. Attempt to upload.
 
 #### Test Data
-- HDFC_Savings_Protected.xlsx (password: wrongpass)
+- Notes.txt
+- Document.doc
+- Data.json
 
 #### Expected Result
-- System displays an error: "Incorrect password. Please try again."
+- System displays a clear error message: "Only Excel (.xlsx/.xls) and CSV files are supported." Parsing does not occur and no data is processed.
 
 ---
 
-### Test Case 6: Upload Corrupted or Malformed File
-**Objective:** Verify that corrupted or malformed files are rejected with a clear error message.
+### Test Case 6: Reject Encrypted Statement
+**Objective:** Verify that encrypted statements are rejected with a clear error message indicating encryption is not supported.
+
+#### Steps
+1. Navigate to the upload screen.
+2. Select an encrypted .xlsx or .csv file.
+3. Attempt to upload.
+
+#### Test Data
+- HDFC_Savings_Encrypted.xlsx
+- HDFC_CreditCard_Encrypted.csv
+
+#### Expected Result
+- System displays a clear error message: "Password-protected and encrypted statements are not supported. Please export without encryption." Parsing does not occur and no data is processed.
+
+---
+
+### Test Case 7: Upload Corrupted or Malformed File
+**Objective:** Verify that corrupted or malformed files are rejected in-browser with a clear error message.
 
 #### Steps
 1. Navigate to the upload screen.
@@ -96,4 +112,4 @@
 - Corrupted_CreditCard.csv
 
 #### Expected Result
-- System displays an error: "File could not be parsed. Please check the file and try again."
+- System displays a clear error message: "File could not be parsed. Please check the file and try again." Parsing stops and no data is processed.

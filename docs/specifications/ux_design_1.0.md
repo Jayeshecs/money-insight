@@ -49,7 +49,7 @@ Plaintext
 
 ###  Screen: Import & AI Processing (WASM Engine)
 
-* **Goal:** Run the Python container, parse the PDF, and show progress. This is the **high-engagement** screen where users wait.
+* **Goal:** Run the Rust WASM container, parse the XLS/XLSX/CSV, and show progress. This is the **high-engagement** screen where users wait.
 
 #### Desktop & Mobile (Modal/Overlay)
 
@@ -61,14 +61,14 @@ Plaintext
 |                                                               |  
 |   1\. Select Bank:  \[ HDFC Bank v \]                            |  
 |                                                               |  
-|   2\. Upload PDF:   \[ Drag & Drop HDFC Statement Here \]        |  
+|   2\. Upload XLS/XLSX/CSV:   \[ Drag & Drop HDFC Statement Here \]        |  
 |                                                               |  
-|   3\. Password:     \[ \*\*\*\*\*\*\*\*\* \] (If encrypted)               |  
+|   3\. Show error message If statement is encrypted or password-protected               |  
 |                                                               |  
 |   \[ PROCEED TO ANALYZE \]                                      |  
 |                                                               |  
 |   \---------------------------------------------------------   |  
-|   STATUS: Loading Python Engine... \[||||||||||     \] 60%      |  
+|   STATUS: Loading Rust WASM Engine... \[||||||||||     \] 60%      |  
 |   \> Initializing Pyodide...                                   |  
 |   \> Loading 'pandas'...                                       |  
 |   \> Loading your Custom ML Model...                           |  
@@ -159,5 +159,5 @@ This is the most complex part of the UI/UX. The user needs to feel like they are
      1. User clicks "Sync".  
      2. App saves data to Google Sheets Transactions tab.  
      3. **App saves the new mappings** (e.g., "FreshMenu" \-\> "Food") to the Rules tab.  
-     4. App triggers the Python WASM background worker to model.partial\_fit() (incremental training) and saves the updated .pkl model back to Drive.  
+     4. App triggers the Rust WASM background worker to model.partial\_fit() (incremental training) and saves the updated .pkl model back to Drive.  
      5. Toast Message: *"Sync complete. Your AI just got smarter\!"*

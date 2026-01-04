@@ -5,12 +5,12 @@
 **So that** my financial data never leaves my device
 
 ### Scenarios
-- User uploads a supported HDFC Savings or Credit Card statement
-- System prompts for password if the file is encrypted
+- User uploads a supported HDFC Savings (xlsx) or Credit Card statement (xlsx)
+- The password protected files are not supported
 - Parsing happens client-side using the Rust WASM engine
 
 ### Acceptance Criteria
 - Only Excel (.xlsx/.xls) and CSV files are accepted
-- If the file is password-protected, user is prompted and parsing proceeds after correct password
+- Password-protected or encrypted files are rejected with a clear error message
 - Parsing is performed entirely in-browser (no server roundtrip)
 - Errors for unsupported formats or failed parsing are clearly shown
