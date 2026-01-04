@@ -1,0 +1,7 @@
+# playwright
+e2e/test-results/
+e2e/test-results.json/
+e2e/playwright-report/
+
+test-output.log
+

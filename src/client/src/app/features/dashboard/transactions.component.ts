@@ -29,8 +29,8 @@ interface TransactionBatch {
         </p>
       </div>
 
-      <div class="transactions-list" *ngIf="transactions().length > 0">
-        <div class="transaction-card" *ngFor="let txn of transactions()">
+      <div class="transactions-list" data-testid="transaction-list" *ngIf="transactions().length > 0">
+        <div class="transaction-card" data-testid="transaction-row" *ngFor="let txn of transactions()">
           <div class="transaction-date">{{ txn.date }}</div>
           <div class="transaction-description">{{ txn.description }}</div>
           <div class="transaction-amount" [class.credit]="txn.amount > 0" [class.debit]="txn.amount < 0">

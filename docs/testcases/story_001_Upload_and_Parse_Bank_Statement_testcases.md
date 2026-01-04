@@ -9,7 +9,7 @@
 3. Click upload.
 
 #### Test Data
-- HDFC_Savings_Sample.xlsx
+- story_001_testdata/SA3234_FY2025_20251221.xls
 
 #### Expected Result
 - File is parsed in-browser and transactions are displayed. No data leaves the device.
@@ -17,15 +17,15 @@
 ---
 
 ### Test Case 2: Upload Supported HDFC Credit Card Statement
-**Objective:** Verify that a valid HDFC Credit Card CSV file is parsed successfully in-browser.
+**Objective:** Verify that a valid HDFC Credit Card XLS file is parsed successfully in-browser.
 
 #### Steps
 1. Navigate to the upload screen.
-2. Select a valid HDFC Credit Card .csv file.
+2. Select a valid HDFC Credit Card .xls file.
 3. Click upload.
 
 #### Test Data
-- HDFC_CreditCard_Sample.csv
+- story_001_testdata/CC2486_20250418.xls
 
 #### Expected Result
 - File is parsed in-browser and transactions are displayed. No data leaves the device.
@@ -41,7 +41,7 @@
 3. Attempt to upload.
 
 #### Test Data
-- HDFC_Savings_Protected.xlsx (password-protected)
+- story_001_testdata/HDFC_Savings_Protected.xlsx (password-protected)
 
 #### Expected Result
 - System displays a clear error message: "Password-protected and encrypted statements are not supported. Please export without encryption." Parsing does not occur and no data is processed.
@@ -57,7 +57,7 @@
 3. Attempt to upload.
 
 #### Test Data
-- Statement.pdf
+- story_001_testdata/Statement.pdf
 
 #### Expected Result
 - System displays a clear error message: "Only Excel (.xlsx/.xls) and CSV files are supported." Parsing does not occur and no data is processed.
@@ -73,9 +73,9 @@
 3. Attempt to upload.
 
 #### Test Data
-- Notes.txt
-- Document.doc
-- Data.json
+- story_001_testdata/Notes.txt
+- story_001_testdata/Document.doc
+- story_001_testdata/Data.json
 
 #### Expected Result
 - System displays a clear error message: "Only Excel (.xlsx/.xls) and CSV files are supported." Parsing does not occur and no data is processed.
@@ -91,8 +91,7 @@
 3. Attempt to upload.
 
 #### Test Data
-- HDFC_Savings_Encrypted.xlsx
-- HDFC_CreditCard_Encrypted.csv
+- story_001_testdata/HDFC_Savings_Encrypted.xlsx
 
 #### Expected Result
 - System displays a clear error message: "Password-protected and encrypted statements are not supported. Please export without encryption." Parsing does not occur and no data is processed.
@@ -108,8 +107,7 @@
 3. Click upload.
 
 #### Test Data
-- Corrupted_Savings.xlsx
-- Corrupted_CreditCard.csv
+- story_001_testdata/Corrupted_Savings.xlsx
 
 #### Expected Result
 - System displays a clear error message: "File could not be parsed. Please check the file and try again." Parsing stops and no data is processed.

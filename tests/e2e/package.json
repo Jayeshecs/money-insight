@@ -1,0 +1,18 @@
+{
+  "name": "moneyinsight-e2e-tests",
+  "version": "1.0.0",
+  "description": "End-to-end tests for MoneyInsight using Playwright",
+  "scripts": {
+    "test": "playwright test",
+    "test:debug": "playwright test --debug",
+    "test:ui": "playwright test --ui",
+    "test:report": "playwright show-report"
+  },
+  "keywords": ["e2e", "playwright", "testing"],
+  "author": "MoneyInsight Team",
+  "license": "MIT",
+  "devDependencies": {
+    "@playwright/test": "^1.40.0",
+    "@types/node": "^20.10.0"
+  }
+}

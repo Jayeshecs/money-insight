@@ -16,6 +16,7 @@
       <div class="upload-section" *ngIf="uploadStatus().stage === 'idle'">
         <div 
           class="drop-zone"
+          data-testid="drop-zone"
           [class.drag-over]="dragOver()"
           (drop)="onFileDrop($event)"
           (dragover)="onDragOver($event)"
@@ -33,6 +34,7 @@
             <input 
               id="file-input" 
               type="file" 
+              data-testid="file-input"
               accept=".xlsx,.xls,.csv"
               (change)="onFileSelected($event)"
               hidden>
@@ -114,7 +116,7 @@
       </div>
 
       <!-- Error Section -->
-      <div class="error-section" *ngIf="uploadStatus().stage === 'error'">
+      <div class="error-section" data-testid="upload-error" *ngIf="uploadStatus().stage === 'error'">
         <div class="error-icon">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="12" cy="12" r="10"/>
@@ -128,7 +130,7 @@
       </div>
 
       <!-- Success Section -->
-      <div class="success-section" *ngIf="uploadStatus().stage === 'complete'">
+      <div class="success-section" data-testid="upload-success" *ngIf="uploadStatus().stage === 'complete'">
         <div class="success-icon">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
