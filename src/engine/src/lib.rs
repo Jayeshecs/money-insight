@@ -282,7 +282,7 @@ mod native_tests {
         registry.register(Box::new(HdfcSavingsParser));
         registry.register(Box::new(HdfcCreditCardParser));
         
-        let sample_data = "HDFC Credit Card\nTransaction Date\tDescription\tAmount\tCr/Dr";
+        let sample_data = "HDFC Bank\nCredit Card Statement\nTransaction type\tDescription\tAmount\tCr/Dr";
         let parser = registry.auto_detect(sample_data);
         
         assert!(parser.is_some());

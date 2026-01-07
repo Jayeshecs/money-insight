@@ -1,1 +1,38 @@
-This is a text formatted notes.
+# Test Data Directory - Story #001
+
+## HDFC Credit Card Test Files
+
+### CC2486_20250418.xls (Version 2 Format)
+- ✅ Generated: 2026-01-06
+- Format: HDFC CC v2 (Column 0 = "Transaction type")
+- Transactions: 12
+- Status: Ready for parser testing
+
+### CC2486_20251218.xls (Version 1 Format)  
+- ✅ Generated: 2026-01-06
+- Format: HDFC CC v1 (Column 1 = "Transaction type")
+- Transactions: 12
+- Status: Ready for parser testing
+
+## Transaction Summary
+
+Both files contain identical transactions:
+- 10 Debits (purchases): ₹30,169
+- 2 Credits (payments): ₹15,000
+- Merchants: Amazon, Swiggy, Uber, Flipkart, Netflix, DMart, etc.
+- Date range: 15/04/2025 - 18/04/2025
+
+## Scripts Available
+
+1. generate_hdfc_cc_testdata.py - Regenerate test files
+2. verify_testdata.py - Verify file structure
+3. test_parser_logic.py - Validate parser logic
+
+## Documentation
+
+- HDFC_CC_TEST_DATA_SPEC.md - Complete specification
+- DEF-001_RESOLUTION_REPORT.md - Resolution details
+
+## Related Defect
+
+DEF-001 - Missing Realistic Test Data (RESOLVED 2026-01-06)
