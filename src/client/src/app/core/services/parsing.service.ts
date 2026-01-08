@@ -3,7 +3,7 @@ import { from, Observable } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 
 // Import WASM module
-import init, { WasmEngine } from '../../wasm/moneyinsight_wasm';
+import init, { WasmEngine } from '../../wasm/pkg/moneyinsight_wasm';
 
 export interface TransactionBatch {
   source_parser: string;
@@ -34,7 +34,7 @@ export class ParsingService {
   private async initialize(): Promise<void> {
     try {
       // Initialize WASM with correct path for Angular dev server
-      await init('/wasm/moneyinsight_wasm_bg.wasm');
+      await init('/wasm/pkg/moneyinsight_wasm_bg.wasm');
       this.wasmEngine = new WasmEngine();
       console.log('WASM Engine initialized successfully');
     } catch (error) {
@@ -69,6 +69,7 @@ export class ParsingService {
       
       return batch;
     } catch (error: any) {
+      console.log('Error during parsing:', error);
       // Map WASM errors to user-friendly messages
       throw new Error(this.mapErrorMessage(error.message || error.toString()));
     }
@@ -91,12 +92,9 @@ export class ParsingService {
   }
 
   private mapErrorMessage(error: string): string {
+    console.error('Parsing error:', error);
     if (error.includes('No parser found')) {
       return 'No parser found for this file format. Please ensure you\'re uploading a valid HDFC Savings or Credit Card statement.';
-    }
-    
-    if (error.includes('could not be parsed')) {
-      return 'File could not be parsed. Please check the file and try again.';
     }
     
     if (error.includes('Header not found')) {
@@ -105,6 +103,10 @@ export class ParsingService {
     
     if (error.includes('No valid transactions')) {
       return 'No valid transactions found in the statement. Please ensure the file contains transaction data.';
+    }
+    
+    if (error.includes('could not be parsed')) {
+      return 'File could not be parsed. Please check the file and try again.';
     }
     
     return error;

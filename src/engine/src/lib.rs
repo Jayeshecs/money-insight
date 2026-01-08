@@ -208,7 +208,10 @@ impl WasmEngine {
                     _ => String::new(),
                 }
             }).collect();
-            tsv.push_str(&row_str.join("\t"));
+            
+            // Build TSV row - preserves empty cells including first cell
+            let tsv_row = row_str.join("\t");
+            tsv.push_str(&tsv_row);
             tsv.push('\n');
         }
         

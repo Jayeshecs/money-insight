@@ -206,8 +206,9 @@ dist/moneyinsight-client/
 │   ├── polyfills-*.js
 │   ├── styles-*.css
 │   └── wasm/
-│       ├── moneyinsight_wasm.js
-│       └── moneyinsight_wasm_bg.wasm
+│       └── pkg/
+│           ├── moneyinsight_wasm.js
+│           └── moneyinsight_wasm_bg.wasm
 ```
 
 ## Troubleshooting
@@ -222,7 +223,7 @@ dist/moneyinsight-client/
 
 2. **Verify WASM files**:
    ```bash
-   ls src/app/wasm/moneyinsight_wasm.js
+   ls src/app/wasm/pkg/moneyinsight_wasm.js
    ```
 
 3. **Check TypeScript errors**:

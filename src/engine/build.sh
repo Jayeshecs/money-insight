@@ -38,7 +38,7 @@ if [ -d "pkg" ]; then
     echo ""
     echo "Next steps:"
     echo "1. Copy pkg/ to Angular project: cp -r pkg/ ../client/src/app/wasm/"
-    echo "2. Import in TypeScript: import init, { WasmEngine } from './wasm/moneyinsight_wasm';"
+    echo "2. Import in TypeScript: import init, { WasmEngine } from './wasm/pkg/moneyinsight_wasm';"
 else
     echo "❌ Build failed!"
     exit 1

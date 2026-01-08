@@ -86,7 +86,7 @@ Update `src/client/src/app/core/services/parsing.service.ts`:
 
 ```typescript
 // Uncomment these lines after WASM build
-import init, { WasmEngine } from '../../wasm/moneyinsight_wasm';
+import init, { WasmEngine } from '../../wasm/pkg/moneyinsight_wasm';
 
 // In initialize() method, uncomment:
 await init();

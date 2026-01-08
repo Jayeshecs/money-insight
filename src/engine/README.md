@@ -85,7 +85,7 @@ cp -r pkg/ ../client/src/app/wasm/
 ### 2. Import in TypeScript
 
 ```typescript
-import init, { WasmEngine } from './wasm/moneyinsight_wasm';
+import init, { WasmEngine } from './wasm/pkg/moneyinsight_wasm';
 
 // Initialize WASM
 await init();

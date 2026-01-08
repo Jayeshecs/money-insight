@@ -1,12 +1,14 @@
 // HDFC Credit Card (v1, v2) parser module
 
 use crate::traits::{BankParser, Transaction};
-use md5;
+use web_sys::console;
+
 
 pub struct HdfcCreditCardParser;
 
 #[derive(Debug, PartialEq)]
 enum HdfcCreditVersion {
+    UNKNOWN,
     V1,
     V2,
 }
@@ -16,15 +18,35 @@ impl HdfcCreditCardParser {
     /// v1: Column 1 (index 1) = "Transaction type"
     /// v2: Column 0 (index 0) = "Transaction type"
     fn detect_version(&self, lines: &[Vec<String>]) -> Option<(HdfcCreditVersion, usize)> {
+        let mut ver: HdfcCreditVersion = HdfcCreditVersion::UNKNOWN;
+        let mut hdrIdx: usize = 0;
         for (idx, line) in lines.iter().enumerate() {
-            // Check for v2 format (column 0 = "Transaction type")
-            if !line.is_empty() && line[0].trim() == "Transaction type" {
-                return Some((HdfcCreditVersion::V2, idx));
-            }
-            
-            // Check for v1 format (column 1 = "Transaction type")
-            if line.len() > 1 && line[1].trim() == "Transaction type" {
-                return Some((HdfcCreditVersion::V1, idx));
+            for cell in line {
+                let cell_content = cell.trim();
+                
+                if ver == HdfcCreditVersion::UNKNOWN {
+                    // Check for v2 format first (more specific pattern)
+                    if cell_content.starts_with("Credit Card No.:") {
+                        console::log_1(&"Detected v2 format indicator".into());
+                        ver = HdfcCreditVersion::V2;
+                    }
+                    
+                    // Check for v1 format
+                    if cell_content.starts_with("Card No:") {
+                        console::log_1(&"Detected v1 format indicator".into());
+                        ver = HdfcCreditVersion::V1;
+                    }
+                }
+                if hdrIdx == 0 {
+                    // Check for header row with "Transaction type"
+                    if cell_content.starts_with("Transaction type") {
+                        hdrIdx = idx;
+                    }
+                }
+                if ver != HdfcCreditVersion::UNKNOWN && hdrIdx > 0 {
+                    console::log_1(&format!("Detected HDFC Credit Card version: {:?} and header row index {}", ver, hdrIdx).into());
+                    return Some((ver, hdrIdx));
+                }
             }
         }
         None
@@ -34,8 +56,9 @@ impl HdfcCreditCardParser {
     /// Returns format: CCNNNN (e.g., CC2486)
     fn extract_card_account(&self, lines: &[Vec<String>], version: &HdfcCreditVersion) -> Result<String, String> {
         let pattern = match version {
-            HdfcCreditVersion::V1 => "Credit Card No.:",
-            HdfcCreditVersion::V2 => "Card No:",
+            HdfcCreditVersion::UNKNOWN => return Err("Unknown HDFC Credit Card version".to_string()),
+            HdfcCreditVersion::V1 => "Card No:",
+            HdfcCreditVersion::V2 => "Credit Card No.:",
         };
         
         // Search for the credit card number in the first few rows
@@ -66,7 +89,7 @@ impl HdfcCreditCardParser {
         
         // Handle DD/MM/YYYY or DD/MM/YY
         let parts: Vec<&str> = date_clean.split('/').collect();
-        if parts.len() != 3 {
+        if parts.len() < 3 {
             return Err(format!("Invalid date format: {}", date_str));
         }
         
@@ -74,7 +97,10 @@ impl HdfcCreditCardParser {
             .map_err(|_| format!("Invalid day: {}", parts[0]))?;
         let month = parts[1].parse::<u32>()
             .map_err(|_| format!("Invalid month: {}", parts[1]))?;
-        let year_str = parts[2];
+        
+        // Extract year part only, ignoring any time component
+        let year_str = parts[2].split_whitespace().next()
+            .ok_or_else(|| format!("Invalid year format: {}", parts[2]))?;
         
         // Handle 2-digit or 4-digit year
         let year = if year_str.len() == 2 {
@@ -93,12 +119,6 @@ impl HdfcCreditCardParser {
         }
         
         Ok(format!("{:04}-{:02}-{:02}", year, month, day))
-    }
-    
-    /// Generate MD5 hash for row-id
-    fn generate_row_id(&self, raw_data: &str) -> String {
-        let digest = md5::compute(raw_data.as_bytes());
-        format!("{:x}", digest)
     }
 }
 
@@ -127,15 +147,18 @@ impl BankParser for HdfcCreditCardParser {
         // Detect version and header row
         let (version, header_idx) = self.detect_version(&lines)
             .ok_or("Invalid HDFC Credit Card format: 'Transaction type' header not found")?;
-        
+                
         // Extract account from credit card number in statement
         let txn_source = self.extract_card_account(&lines, &version)?;
+        console::log_1(&format!("Extracted txn_source: {}", txn_source).into());
         
         // Determine column indices based on version
         let (date_col, narration_col, amount_col, cr_dr_col) = match version {
-            HdfcCreditVersion::V1 => (17, 21, 48, 54),
+            HdfcCreditVersion::UNKNOWN => return Err("Unknown HDFC Credit Card version".to_string()),
+            HdfcCreditVersion::V1 => (16, 20, 47, 53),
             HdfcCreditVersion::V2 => (9, 12, 20, 23),
         };
+        console::log_1(&format!("Using columns - Date: {}, Narration: {}, Amount: {}, Cr/Dr: {}", date_col, narration_col, amount_col, cr_dr_col).into());
         
         // Parse transactions starting from the row after header
         let start_row = header_idx + 1;
@@ -251,6 +274,10 @@ mod tests {
         // Test DD/MM/YY format
         assert_eq!(parser.parse_date("15/04/25").unwrap(), "2025-04-15");
         assert_eq!(parser.parse_date("01/12/24").unwrap(), "2024-12-01");
+        
+        // Test with time component
+        assert_eq!(parser.parse_date("15/04/2025 12:30:45").unwrap(), "2025-04-15");
+        assert_eq!(parser.parse_date("01/12/2024 08:15").unwrap(), "2024-12-01");
     }
 
     #[test]
@@ -296,20 +323,6 @@ mod tests {
         
         let result = parser.extract_card_account(&lines, &HdfcCreditVersion::V1);
         assert!(result.is_err());
-    }
-
-    #[test]
-    fn test_row_id_generation() {
-        let parser = HdfcCreditCardParser;
-        let raw_data = "15/04/2025|AMAZON RETAIL INDIA|2500.0|Dr";
-        let row_id = parser.generate_row_id(raw_data);
-        
-        // MD5 hash should be 32 characters (hex)
-        assert_eq!(row_id.len(), 32);
-        
-        // Same input should produce same hash
-        let row_id2 = parser.generate_row_id(raw_data);
-        assert_eq!(row_id, row_id2);
     }
 
     #[test]

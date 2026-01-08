@@ -15,6 +15,7 @@ calamine = { version = "0.26", features = ["dates"] }
 js-sys = "0.3"
 console_error_panic_hook = "0.1"
 md5 = "0.7"
+web-sys = { version = "0.3", features = ['Window', 'console'] }
 
 [dev-dependencies]
 wasm-bindgen-test = "0.3"
