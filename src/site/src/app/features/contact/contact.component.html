@@ -1,0 +1,52 @@
+<main id="main" class="contact">
+  <!-- Hero Section -->
+  <section class="hero section">
+    <div class="container">
+      <h1>{{ content.contact.title }}</h1>
+      <p class="subtitle">{{ content.contact.subtitle }}</p>
+    </div>
+  </section>
+
+  <!-- Form Section -->
+  <section class="form-section section">
+    <div class="container">
+      <div class="form-container">
+        <iframe
+          [src]="formUrl"
+          width="100%"
+          height="800"
+          frameborder="0"
+          marginheight="0"
+          marginwidth="0"
+          title="Contact Form">
+          Loading…
+        </iframe>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ Section -->
+  <section class="faq section">
+    <div class="container">
+      <h2 class="section-title text-center">Frequently Asked Questions</h2>
+      <div class="faq-list">
+        <div *ngFor="let item of content.contact.faq" class="faq-item">
+          <h3 class="faq-question">{{ item.question }}</h3>
+          <p class="faq-answer">{{ item.answer }}</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact Info -->
+  <section class="contact-info section">
+    <div class="container text-center">
+      <h2>Email Us</h2>
+      <p>
+        <a [href]="'mailto:' + content.company.email" class="email-link">
+          {{ content.company.email }}
+        </a>
+      </p>
+    </div>
+  </section>
+</main>

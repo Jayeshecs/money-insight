@@ -1,0 +1,32 @@
+<main id="main" class="about">
+  <!-- Hero Section -->
+  <section class="hero section">
+    <div class="container">
+      <h1>About Ventio</h1>
+      <p class="subtitle">{{ content.about.mission }}</p>
+    </div>
+  </section>
+
+  <!-- Vision Section -->
+  <section class="vision section">
+    <div class="container">
+      <div class="vision-content">
+        <h2 class="section-title">Our Vision</h2>
+        <p class="vision-text">{{ content.about.vision }}</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Values Section -->
+  <section class="values section">
+    <div class="container">
+      <h2 class="section-title text-center">Our Values</h2>
+      <div class="grid cols-2">
+        <div *ngFor="let value of content.about.values" class="value-card card">
+          <h3 class="value-title">{{ value.title }}</h3>
+          <p class="value-description">{{ value.description }}</p>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>

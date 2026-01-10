@@ -1,0 +1,91 @@
+@import '../../../styles/variables';
+@import '../../../styles/mixins';
+
+.contact {
+  min-height: 100vh;
+}
+
+.hero {
+  background: linear-gradient(135deg, var(--color-bg) 0%, var(--color-surface) 100%);
+  text-align: center;
+  padding-top: $spacing-16;
+  padding-bottom: $spacing-16;
+
+  h1 {
+    font-size: 3rem;
+    margin-bottom: $spacing-4;
+  }
+
+  .subtitle {
+    max-width: 800px;
+    margin: 0 auto;
+    font-size: 1.125rem;
+  }
+}
+
+.form-section {
+  background: var(--color-bg);
+}
+
+.form-container {
+  max-width: 800px;
+  margin: 0 auto;
+  background: var(--color-surface);
+  border-radius: $radius-md;
+  padding: $spacing-6;
+  box-shadow: var(--shadow-md);
+
+  iframe {
+    border: none;
+    display: block;
+    border-radius: $radius-sm;
+  }
+}
+
+.faq {
+  background: var(--color-surface);
+}
+
+.faq-list {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.faq-item {
+  padding: $spacing-6;
+  margin-bottom: $spacing-6;
+  background: var(--color-bg);
+  border-radius: $radius-md;
+  box-shadow: var(--shadow-sm);
+}
+
+.faq-question {
+  color: var(--color-primary);
+  font-size: 1.125rem;
+  margin-bottom: $spacing-3;
+}
+
+.faq-answer {
+  color: var(--color-text-muted);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.contact-info {
+  background: var(--color-bg);
+
+  h2 {
+    margin-bottom: $spacing-4;
+  }
+}
+
+.email-link {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--color-primary);
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}

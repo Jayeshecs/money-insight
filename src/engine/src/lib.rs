@@ -7,9 +7,11 @@ use std::io::Cursor;
 
 mod traits;
 mod parsers;
+mod detector;
 
 use traits::{PluginRegistry, TransactionBatch};
 use parsers::{HdfcSavingsParser, HdfcCreditCardParser};
+use detector::StatementDetector;
 
 /// Set up panic hook for better error messages in WASM
 #[wasm_bindgen(start)]
@@ -63,11 +65,27 @@ impl WasmEngine {
                 .map_err(|e| JsValue::from_str(&format!("Invalid UTF-8 in file: {}", e)))?
         };
         
-        // Auto-detect parser
-        let parser = self.registry.auto_detect(&text_data)
-            .ok_or_else(|| JsValue::from_str(
-                "No parser found for this file format. Please ensure you're uploading a valid HDFC Savings or Credit Card statement."
-            ))?;
+        // Validate basic structure
+        if let Err(e) = StatementDetector::validate_structure(&text_data) {
+            return Err(JsValue::from_str(&format!("Invalid file structure: {}", e)));
+        }
+        
+        // Auto-detect parser using enhanced detector
+        let detection = StatementDetector::detect(&self.registry.parsers, &text_data);
+        
+        let parser = match detection.parser {
+            Some(p) => p,
+            None => {
+                // Provide helpful hints about what was detected
+                let hints = StatementDetector::get_hints(&text_data);
+                let hints_str = hints.join("; ");
+                
+                return Err(JsValue::from_str(&format!(
+                    "No parser found for this file format. Detection hints: {}. Currently supported: HDFC Savings and Credit Card statements.",
+                    hints_str
+                )));
+            }
+        };
         
         // Parse transactions
         let transactions = parser.parse(&text_data)
@@ -125,7 +143,7 @@ impl WasmEngine {
                 
                 // Validate FAT sector count and directory sector
                 if bytes.len() >= 68 {
-                    let num_fat_sectors = u32::from_le_bytes([bytes[44], bytes[45], bytes[46], bytes[47]]);
+                    let _num_fat_sectors = u32::from_le_bytes([bytes[44], bytes[45], bytes[46], bytes[47]]);
                     let first_dir_sector = u32::from_le_bytes([bytes[48], bytes[49], bytes[50], bytes[51]]);
                     
                     // If file is too small to contain the claimed sectors, it's corrupted
@@ -231,6 +249,51 @@ impl WasmEngine {
         
         serde_wasm_bindgen::to_value(&parsers).unwrap_or(JsValue::NULL)
     }
+    
+    /// Detect the file format without parsing
+    /// 
+    /// # Arguments
+    /// * `file_data` - Binary file data as Uint8Array
+    /// * `file_name` - The name of the file
+    /// 
+    /// # Returns
+    /// JSON object with detection results: { detected: bool, format: string, confidence: string, hints: string[] }
+    #[wasm_bindgen]
+    pub fn detect_format(&self, file_data: Uint8Array, file_name: &str) -> Result<String, JsValue> {
+        // Convert Uint8Array to Vec<u8>
+        let bytes = file_data.to_vec();
+        
+        if bytes.is_empty() {
+            return Err(JsValue::from_str("File is empty or could not be read"));
+        }
+        
+        // Convert to text (Excel to TSV or use as-is for CSV/TXT)
+        let text_data = if file_name.to_lowercase().ends_with(".xlsx") || file_name.to_lowercase().ends_with(".xls") {
+            self.excel_to_tsv(&bytes)?
+        } else {
+            String::from_utf8(bytes)
+                .map_err(|e| JsValue::from_str(&format!("Invalid UTF-8 in file: {}", e)))?
+        };
+        
+        // Validate structure
+        let structure_valid = StatementDetector::validate_structure(&text_data).is_ok();
+        
+        // Detect format
+        let detection = StatementDetector::detect(&self.registry.parsers, &text_data);
+        let hints = StatementDetector::get_hints(&text_data);
+        
+        let result = serde_json::json!({
+            "detected": detection.parser.is_some(),
+            "format": detection.parser.map(|p| p.name()).unwrap_or("Unknown"),
+            "confidence": format!("{:?}", detection.confidence),
+            "reason": detection.reason,
+            "hints": hints,
+            "structureValid": structure_valid,
+        });
+        
+        serde_json::to_string(&result)
+            .map_err(|e| JsValue::from_str(&format!("Failed to serialize results: {}", e)))
+    }
 }
 
 #[cfg(all(test, target_arch = "wasm32"))]
@@ -285,7 +348,7 @@ mod native_tests {
         registry.register(Box::new(HdfcSavingsParser));
         registry.register(Box::new(HdfcCreditCardParser));
         
-        let sample_data = "HDFC Bank\nCredit Card Statement\nTransaction type\tDescription\tAmount\tCr/Dr";
+        let sample_data = "HDFC Bank\nCredit Card Statement\nCard No: 1234567890123456\nTransaction type\tDescription\tAmount\tCr/Dr";
         let parser = registry.auto_detect(sample_data);
         
         assert!(parser.is_some());

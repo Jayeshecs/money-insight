@@ -7,9 +7,21 @@ pub struct HdfcSavingsParser;
 impl BankParser for HdfcSavingsParser {
     fn identify(&self, data: &str) -> bool {
         // Check for HDFC Savings specific patterns
-        data.contains("HDFC Bank") && 
-        (data.contains("Date") && data.contains("Narration") && 
-         (data.contains("Withdrawal Amt") || data.contains("Deposit Amt")))
+        // Based on Python reference: Look for "Date" header in first column position
+        // and typical HDFC savings account column headers
+        let lines: Vec<&str> = data.lines().take(20).collect();
+        
+        for line in lines {
+            // Check if line contains the expected header pattern
+            if line.contains("Date") && line.contains("Narration") {
+                // Further validate with withdrawal/deposit columns
+                if line.contains("Withdrawal Amt") || line.contains("Deposit Amt") {
+                    // Also check for HDFC Bank mention in first few lines
+                    return data.lines().take(10).any(|l| l.to_lowercase().contains("hdfc bank"));
+                }
+            }
+        }
+        false
     }
     
     fn parse(&self, data: &str) -> Result<Vec<Transaction>, String> {

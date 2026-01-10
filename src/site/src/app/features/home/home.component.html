@@ -1,0 +1,130 @@
+<main id="main" class="home">
+  <!-- Hero Section -->
+  <section class="hero section">
+    <div class="container">
+      <div class="hero-content">
+        <h1 class="hero-headline">{{ content.home.hero.headline }}</h1>
+        <p class="hero-subheadline">{{ content.home.hero.subheadline }}</p>
+        <div class="hero-actions">
+          <app-cta-button
+            [text]="content.home.hero.ctaPrimary"
+            [href]="content.product.moneyInsightUrl"
+            [external]="true"
+            variant="primary"
+            size="large">
+          </app-cta-button>
+          <app-cta-button
+            [text]="content.home.hero.ctaSecondary"
+            link="/contact"
+            variant="secondary"
+            size="large">
+          </app-cta-button>
+        </div>
+      </div>
+      <div class="hero-visual">
+        <div class="infographic-container">
+          <img 
+            src="assets/images/moneyinsight_infographic_01.png" 
+            alt="MoneyInsight Product Infographic - AI-powered personal finance management workflow"
+            class="infographic-image"
+            loading="lazy">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Benefits Section -->
+  <section class="benefits section">
+    <div class="container">
+      <h2 class="section-title text-center">{{ content.home.benefits.title }}</h2>
+      <div class="grid cols-3">
+        <div *ngFor="let benefit of content.home.benefits.items" class="benefit-card card">
+          <div class="benefit-icon">
+            <svg *ngIf="benefit.icon === 'shield'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+            </svg>
+            <svg *ngIf="benefit.icon === 'cpu'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect>
+              <rect x="9" y="9" width="6" height="6"></rect>
+              <line x1="9" y1="1" x2="9" y2="4"></line>
+              <line x1="15" y1="1" x2="15" y2="4"></line>
+              <line x1="9" y1="20" x2="9" y2="23"></line>
+              <line x1="15" y1="20" x2="15" y2="23"></line>
+              <line x1="20" y1="9" x2="23" y2="9"></line>
+              <line x1="20" y1="14" x2="23" y2="14"></line>
+              <line x1="1" y1="9" x2="4" y2="9"></line>
+              <line x1="1" y1="14" x2="4" y2="14"></line>
+            </svg>
+            <svg *ngIf="benefit.icon === 'cloud-off'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22.61 16.95A5 5 0 0 0 18 10h-1.26a8 8 0 0 0-7.05-6M5 5a8 8 0 0 0 4 15h9a5 5 0 0 0 1.7-.3"></path>
+              <line x1="1" y1="1" x2="23" y2="23"></line>
+            </svg>
+          </div>
+          <h3 class="benefit-title">{{ benefit.title }}</h3>
+          <p class="benefit-description">{{ benefit.description }}</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How It Works Section -->
+  <section class="how-it-works section">
+    <div class="container">
+      <h2 class="section-title text-center">{{ content.home.howItWorks.title }}</h2>
+      <div class="steps">
+        <div *ngFor="let step of content.home.howItWorks.steps; let i = index" class="step">
+          <div class="step-number">{{ step.number }}</div>
+          <div class="step-content">
+            <h3 class="step-title">{{ step.title }}</h3>
+            <p class="step-description">{{ step.description }}</p>
+          </div>
+          <div *ngIf="i < content.home.howItWorks.steps.length - 1" class="step-connector">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <polyline points="19 12 12 19 5 12"></polyline>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Supported Banks Section -->
+  <section class="supported-banks section">
+    <div class="container">
+      <h2 class="section-title text-center">{{ content.home.supportedBanks.title }}</h2>
+      <div class="banks-grid">
+        <div *ngFor="let bank of content.home.supportedBanks.banks" class="bank-item">
+          <div class="bank-logo">
+            <span>{{ bank }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="cta-section section">
+    <div class="container">
+      <div class="cta-content">
+        <h2 class="cta-headline">Ready to take control of your finances?</h2>
+        <p class="cta-subheadline">Start tracking, analyzing, and optimizing your spending today—with complete privacy.</p>
+        <div class="cta-actions">
+          <app-cta-button
+            [text]="content.home.hero.ctaPrimary"
+            [href]="content.product.moneyInsightUrl"
+            [external]="true"
+            variant="accent"
+            size="large">
+          </app-cta-button>
+          <app-cta-button
+            [text]="content.home.hero.ctaSecondary"
+            link="/contact"
+            variant="secondary"
+            size="large">
+          </app-cta-button>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>

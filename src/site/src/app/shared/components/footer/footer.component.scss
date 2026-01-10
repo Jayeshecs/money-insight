@@ -1,0 +1,118 @@
+@import '../../../../styles/variables';
+@import '../../../../styles/mixins';
+
+.footer {
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+  padding: $spacing-12 0 $spacing-6;
+  margin-top: $spacing-16;
+}
+
+.footer-content {
+  display: grid;
+  gap: $spacing-8;
+  margin-bottom: $spacing-8;
+
+  @include tablet {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @include desktop {
+    grid-template-columns: 2fr 1fr 1fr;
+  }
+}
+
+.footer-brand {
+  .brand-name {
+    font-size: 1.5rem;
+    color: var(--color-primary);
+    margin-bottom: $spacing-2;
+  }
+
+  .brand-tagline {
+    color: var(--color-text-muted);
+    margin: 0;
+  }
+}
+
+.footer-heading {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: $spacing-4;
+  color: var(--color-text);
+}
+
+.link-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-2;
+}
+
+.footer-link {
+  color: var(--color-text-muted);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+  display: inline-block;
+
+  &:hover {
+    color: var(--color-primary);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+    border-radius: $radius-sm;
+  }
+}
+
+.social-links {
+  display: flex;
+  gap: $spacing-4;
+  margin-bottom: $spacing-4;
+}
+
+.social-link {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-muted);
+  transition: all var(--transition-fast);
+  border-radius: $radius-sm;
+
+  svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  &:hover {
+    color: var(--color-primary);
+    background: var(--color-bg);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+}
+
+.footer-contact {
+  p {
+    margin: 0;
+    font-size: 0.875rem;
+  }
+}
+
+.footer-bottom {
+  padding-top: $spacing-6;
+  border-top: 1px solid var(--color-border);
+  text-align: center;
+
+  .copyright {
+    color: var(--color-text-muted);
+    font-size: 0.875rem;
+    margin: 0;
+  }
+}

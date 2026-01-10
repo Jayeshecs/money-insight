@@ -1,0 +1,92 @@
+// Typography styles
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--color-text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 700;
+  line-height: 1.2;
+  margin-top: 0;
+  margin-bottom: $spacing-4;
+  color: var(--color-text);
+}
+
+h1 {
+  font-size: 3rem; // 48px
+  
+  @include mobile {
+    font-size: 2rem; // 32px
+  }
+  
+  @include tablet {
+    font-size: 2.5rem; // 40px
+  }
+}
+
+h2 {
+  font-size: 2.25rem; // 36px
+  
+  @include mobile {
+    font-size: 1.75rem; // 28px
+  }
+  
+  @include tablet {
+    font-size: 2rem; // 32px
+  }
+}
+
+h3 {
+  font-size: 1.5rem; // 24px
+  
+  @include mobile {
+    font-size: 1.25rem; // 20px
+  }
+}
+
+h4 {
+  font-size: 1.25rem; // 20px
+}
+
+h5 {
+  font-size: 1.125rem; // 18px
+}
+
+h6 {
+  font-size: 1rem; // 16px
+}
+
+p {
+  margin-top: 0;
+  margin-bottom: $spacing-4;
+}
+
+.text-muted {
+  color: var(--color-text-muted);
+}
+
+.text-small {
+  font-size: 0.875rem; // 14px
+}
+
+.text-large {
+  font-size: 1.125rem; // 18px
+}
+
+code {
+  font-family: 'Fira Code', monospace;
+  font-size: 0.875em;
+  padding: 2px 6px;
+  background: var(--color-surface);
+  border-radius: $radius-sm;
+}
+
+.subtitle {
+  font-size: 1.125rem;
+  color: var(--color-text-muted);
+  font-weight: 400;
+}

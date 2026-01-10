@@ -19,7 +19,7 @@ impl HdfcCreditCardParser {
     /// v2: Column 0 (index 0) = "Transaction type"
     fn detect_version(&self, lines: &[Vec<String>]) -> Option<(HdfcCreditVersion, usize)> {
         let mut ver: HdfcCreditVersion = HdfcCreditVersion::UNKNOWN;
-        let mut hdrIdx: usize = 0;
+        let mut hdr_idx: usize = 0;
         for (idx, line) in lines.iter().enumerate() {
             for cell in line {
                 let cell_content = cell.trim();
@@ -27,25 +27,28 @@ impl HdfcCreditCardParser {
                 if ver == HdfcCreditVersion::UNKNOWN {
                     // Check for v2 format first (more specific pattern)
                     if cell_content.starts_with("Credit Card No.:") {
+                        #[cfg(target_arch = "wasm32")]
                         console::log_1(&"Detected v2 format indicator".into());
                         ver = HdfcCreditVersion::V2;
                     }
                     
                     // Check for v1 format
                     if cell_content.starts_with("Card No:") {
+                        #[cfg(target_arch = "wasm32")]
                         console::log_1(&"Detected v1 format indicator".into());
                         ver = HdfcCreditVersion::V1;
                     }
                 }
-                if hdrIdx == 0 {
+                if hdr_idx == 0 {
                     // Check for header row with "Transaction type"
                     if cell_content.starts_with("Transaction type") {
-                        hdrIdx = idx;
+                        hdr_idx = idx;
                     }
                 }
-                if ver != HdfcCreditVersion::UNKNOWN && hdrIdx > 0 {
-                    console::log_1(&format!("Detected HDFC Credit Card version: {:?} and header row index {}", ver, hdrIdx).into());
-                    return Some((ver, hdrIdx));
+                if ver != HdfcCreditVersion::UNKNOWN && hdr_idx > 0 {
+                    #[cfg(target_arch = "wasm32")]
+                    console::log_1(&format!("Detected HDFC Credit Card version: {:?} and header row index {}", ver, hdr_idx).into());
+                    return Some((ver, hdr_idx));
                 }
             }
         }
@@ -125,11 +128,16 @@ impl HdfcCreditCardParser {
 impl BankParser for HdfcCreditCardParser {
     fn identify(&self, data: &str) -> bool {
         // Look for HDFC Credit Card indicators and Transaction type header
-        let has_hdfc = data.to_lowercase().contains("hdfc");
-        let has_credit = data.to_lowercase().contains("credit");
+        // Based on Python reference: Check for "Transaction type" column header
+        // and credit card number patterns
+        let lower_data = data.to_lowercase();
+        let has_hdfc = lower_data.contains("hdfc");
+        let has_credit = lower_data.contains("credit");
+        let has_card = lower_data.contains("card no") || lower_data.contains("credit card no");
         let has_header = data.contains("Transaction type");
         
-        has_hdfc && has_credit && has_header
+        // Must have all key indicators
+        has_hdfc && has_credit && has_card && has_header
     }
     
     fn parse(&self, data: &str) -> Result<Vec<Transaction>, String> {
@@ -224,7 +232,7 @@ mod tests {
 
     #[test]
     fn test_hdfc_credit_identification() {
-        let valid_data = "HDFC Bank Credit Card\nTransaction type\tDescription\tAmount\tCr/Dr";
+        let valid_data = "HDFC Bank Credit Card\nCard No: 1234567890123456\nTransaction type\tDescription\tAmount\tCr/Dr";
         let parser = HdfcCreditCardParser;
         assert!(parser.identify(valid_data));
     }
@@ -234,7 +242,7 @@ mod tests {
         let parser = HdfcCreditCardParser;
         let lines = vec![
             vec!["HDFC Credit Card".to_string()],
-            vec!["Card Number".to_string()],
+            vec!["Credit Card No.: 653029XXXXXX2486".to_string()],
             vec!["Statement Date".to_string()],
             vec!["Transaction type".to_string(), "".to_string(), "Transaction date".to_string()],
         ];
@@ -251,7 +259,7 @@ mod tests {
         let parser = HdfcCreditCardParser;
         let lines = vec![
             vec!["HDFC Credit Card".to_string()],
-            vec!["Card Number".to_string()],
+            vec!["Card No: 6530 29XX XXXX 2486".to_string()],
             vec!["Statement Date".to_string()],
             vec!["".to_string(), "Transaction type".to_string(), "Transaction date".to_string()],
         ];
@@ -284,10 +292,10 @@ mod tests {
     fn test_card_account_extraction_v1() {
         let parser = HdfcCreditCardParser;
         
-        // Test V1 format: "Credit Card No.: NNNNNNXXXXXXNNNN"
+        // Test V1 format: "Card No: NNNN NNXX XXXX NNNN"
         let lines = vec![
             vec!["HDFC Bank Credit Card".to_string()],
-            vec!["Credit Card No.: 653029XXXXXX2486".to_string()],
+            vec!["Card No: 6530 29XX XXXX 2486".to_string()],
             vec!["Statement Date: 15/04/2025".to_string()],
         ];
         
@@ -300,10 +308,10 @@ mod tests {
     fn test_card_account_extraction_v2() {
         let parser = HdfcCreditCardParser;
         
-        // Test V2 format: "Card No: NNNN NNXX XXXX NNNN"
+        // Test V2 format: "Credit Card No.: NNNNNNXXXXXXNNNN"
         let lines = vec![
             vec!["HDFC Bank Credit Card".to_string()],
-            vec!["Card No: 6530 29XX XXXX 2486".to_string()],
+            vec!["Credit Card No.: 653029XXXXXX2486".to_string()],
             vec!["Statement Date: 15/04/2025".to_string()],
         ];
         
