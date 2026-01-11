@@ -1,0 +1,44 @@
+<main id="main" class="faq-page">
+  <section class="hero">
+    <div class="container">
+      <h1 class="title">{{ content.faq.title }}</h1>
+      <p class="subtitle">{{ content.faq.subtitle }}</p>
+    </div>
+  </section>
+
+  <section class="faq-content">
+    <div class="container">
+      <div class="faq-list">
+        <div 
+          *ngFor="let item of content.faq.items; let i = index" 
+          class="faq-item"
+          [class.open]="openIndex === i">
+          <button 
+            class="faq-question" 
+            (click)="toggleFaq(i)"
+            [attr.aria-expanded]="openIndex === i"
+            [attr.aria-controls]="'faq-answer-' + i">
+            <span class="question-text">{{ item.question }}</span>
+            <span class="icon" [class.rotate]="openIndex === i">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </span>
+          </button>
+          <div 
+            class="faq-answer" 
+            [id]="'faq-answer-' + i"
+            [class.show]="openIndex === i">
+            <p>{{ item.answer }}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="cta-section">
+        <h2>Still have questions?</h2>
+        <p>Can't find what you're looking for? Get in touch with our team.</p>
+        <a routerLink="/contact" class="btn btn-primary">Contact Us</a>
+      </div>
+    </div>
+  </section>
+</main>

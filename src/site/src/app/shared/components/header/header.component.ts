@@ -15,6 +15,7 @@ import { CtaButtonComponent } from '../cta-button/cta-button.component';
       <div class="container">
         <div class="header-content">
           <a routerLink="/" class="logo" aria-label="Ventio Home">
+            <img src="assets/images/ventio_icon.png" alt="Ventio Logo" class="logo-image">
             <span class="logo-text">{{ content.company.name }}</span>
           </a>
 

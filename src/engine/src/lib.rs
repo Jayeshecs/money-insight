@@ -5,8 +5,8 @@ use js_sys::Uint8Array;
 use calamine::{Reader, open_workbook_auto_from_rs, Data};
 use std::io::Cursor;
 
-mod traits;
-mod parsers;
+pub mod traits;
+pub mod parsers;
 mod detector;
 
 use traits::{PluginRegistry, TransactionBatch};

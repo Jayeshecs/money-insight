@@ -27,6 +27,7 @@ export class ImportComponent {
 
   selectedFile = signal<File | null>(null);
   dragOver = signal(false);
+  parsedBatch = signal<TransactionBatch | null>(null);
 
   constructor(
     private fileUploadService: FileUploadService,
@@ -116,19 +117,17 @@ export class ImportComponent {
       }
 
       // Success
+      this.parsedBatch.set(batch);
       this.uploadStatus.set({
         stage: 'complete',
         message: `Successfully parsed ${batch.transactions.length} transactions in ${batch.parse_duration_ms}ms`,
         progress: 100
       });
 
-      // Store in session/state and navigate to review
+      // Store in session/state
       sessionStorage.setItem('parsedTransactions', JSON.stringify(batch));
       
-      // Navigate to transactions view after delay
-      setTimeout(() => {
-        this.router.navigate(['/transactions']);
-      }, 1500);
+      // Don't auto-navigate - let user review results
 
     } catch (error: any) {
       this.uploadStatus.set({
@@ -142,6 +141,7 @@ export class ImportComponent {
 
   resetUpload(): void {
     this.selectedFile.set(null);
+    this.parsedBatch.set(null);
     this.uploadStatus.set({
       stage: 'idle',
       message: 'Ready to upload',

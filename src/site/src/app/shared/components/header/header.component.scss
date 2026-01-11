@@ -21,6 +21,7 @@
 .logo {
   display: flex;
   align-items: center;
+  gap: $spacing-3;
   text-decoration: none;
   font-weight: 700;
   font-size: 1.5rem;
@@ -35,6 +36,23 @@
     outline: 2px solid var(--color-primary);
     outline-offset: 4px;
     border-radius: 4px;
+  }
+}
+
+.logo-image {
+  height: 40px;
+  width: auto;
+  display: block;
+  transition: transform var(--transition-fast);
+
+  .logo:hover & {
+    transform: scale(1.05);
+  }
+}
+
+.logo-text {
+  @media (max-width: $breakpoint-mobile) {
+    display: none;
   }
 }
 

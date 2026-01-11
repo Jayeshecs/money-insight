@@ -139,7 +139,40 @@
         </div>
         <h3>Success!</h3>
         <p>{{ uploadStatus().message }}</p>
-        <p class="redirect-text">Redirecting to transaction review...</p>
+        
+        <!-- Display parser name and transaction count -->
+        <div class="parser-info" *ngIf="parsedBatch()" data-testid="parser-name">
+          Parser: <strong>{{ parsedBatch()!.source_parser }}</strong>
+        </div>
+        
+        <!-- Transaction List -->
+        <div class="transaction-preview" *ngIf="parsedBatch()" data-testid="transaction-list">
+          <h4>Parsed Transactions ({{ parsedBatch()!.transactions.length }})</h4>
+          <div class="transaction-table">
+            <div class="transaction-row transaction-header">
+              <span class="col-date">Date</span>
+              <span class="col-description">Description</span>
+              <span class="col-amount">Amount</span>
+              <span class="col-type">Type</span>
+            </div>
+            <div 
+              *ngFor="let tx of parsedBatch()!.transactions.slice(0, 10)" 
+              class="transaction-row"
+              data-testid="transaction-row">
+              <span class="col-date">{{ tx.date }}</span>
+              <span class="col-description">{{ tx.description }}</span>
+              <span class="col-amount" [class.debit]="tx.transaction_type === 'DEBIT'" [class.credit]="tx.transaction_type === 'CREDIT'">
+                {{ tx.amount | number:'1.2-2' }}
+              </span>
+              <span class="col-type">{{ tx.transaction_type }}</span>
+            </div>
+            <div *ngIf="parsedBatch()!.transactions.length > 10" class="more-transactions">
+              ... and {{ parsedBatch()!.transactions.length - 10 }} more transactions
+            </div>
+          </div>
+        </div>
+        
+        <button class="action-btn" (click)="resetUpload()">Upload Another</button>
       </div>
     </div>
   </div>

@@ -52,7 +52,11 @@ export interface SiteContent {
     title: string;
     subtitle: string;
     googleFormUrl: string;
-    faq: { question: string; answer: string; }[];
+  };
+  faq: {
+    title: string;
+    subtitle: string;
+    items: { question: string; answer: string; }[];
   };
 }
 
@@ -104,9 +108,10 @@ export class ContentService {
       navigation: {
         links: [
           { label: 'Home', route: '/' },
-          { label: 'Product', route: '/#/product' },
-          { label: 'About', route: '/#/about' },
-          { label: 'Contact', route: '/#/contact' }
+          { label: 'Product', route: '/product' },
+          { label: 'FAQ', route: '/faq' },
+          { label: 'Contact', route: '/contact' },
+          { label: 'About', route: '/about' }
         ]
       },
       footer: {
@@ -117,11 +122,12 @@ export class ContentService {
         ],
         quickLinks: [
           { label: 'Home', route: '/' },
-          { label: 'Product', route: '/#/product' },
-          { label: 'About', route: '/#/about' },
-          { label: 'Contact', route: '/#/contact' },
-          { label: 'Privacy Policy', route: '/#/privacy' },
-          { label: 'Terms', route: '/#/terms' }
+          { label: 'Product', route: '/product' },
+          { label: 'FAQ', route: '/faq' },
+          { label: 'Contact', route: '/contact' },
+          { label: 'About', route: '/about' },
+          { label: 'Privacy Policy', route: '/privacy' },
+          { label: 'Terms', route: '/terms' }
         ],
         copyright: `© ${new Date().getFullYear()} Ventio. All rights reserved.`
       },
@@ -222,8 +228,12 @@ export class ContentService {
       contact: {
         title: 'Get in Touch',
         subtitle: 'Have questions? Want early access? We\'d love to hear from you.',
-        googleFormUrl: 'https://docs.google.com/forms/d/e/1FAIpQLSfrNCYGLlNFy1JsEYrJZB6HWpFhfnz-zaw1Yi86aD5CsX7lmg/viewform',
-        faq: [
+        googleFormUrl: 'https://docs.google.com/forms/d/e/1FAIpQLSfrNCYGLlNFy1JsEYrJZB6HWpFhfnz-zaw1Yi86aD5CsX7lmg/viewform'
+      },
+      faq: {
+        title: 'Frequently Asked Questions',
+        subtitle: 'Find answers to common questions about MoneyInsight and Ventio',
+        items: [
           {
             question: 'Is my data safe?',
             answer: 'Absolutely. All processing happens in your browser using a Rust WASM engine. We never see or store your financial data on our servers.'
@@ -243,6 +253,18 @@ export class ContentService {
           {
             question: 'Is this really free?',
             answer: 'Yes, during the beta period. We may introduce premium features later, but core functionality will remain free.'
+          },
+          {
+            question: 'Can I use this on mobile?',
+            answer: 'Yes! MoneyInsight works on any modern browser including mobile devices. The interface is fully responsive.'
+          },
+          {
+            question: 'What file formats are supported?',
+            answer: 'We support Excel (.xlsx, .xls) and CSV files. PDF statements are not currently supported.'
+          },
+          {
+            question: 'How does offline mode work?',
+            answer: 'Your transactions are cached in IndexedDB in your browser. You can view and analyze them without internet, and they\'ll sync to Google Sheets when you\'re back online.'
           }
         ]
       }

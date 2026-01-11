@@ -22,6 +22,11 @@ export const routes: Routes = [
     title: 'Contact Us'
   },
   {
+    path: 'faq',
+    loadComponent: () => import('./features/faq/faq.component').then(m => m.FaqComponent),
+    title: 'FAQ - Frequently Asked Questions'
+  },
+  {
     path: 'privacy',
     loadComponent: () => import('./features/legal/privacy-policy.component').then(m => m.PrivacyPolicyComponent),
     title: 'Privacy Policy'

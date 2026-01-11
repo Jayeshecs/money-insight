@@ -4,4 +4,6 @@ e2e/test-results.json/
 e2e/playwright-report/
 
 test-output.log
+test-output.txt
+latest-test-results.txt
 

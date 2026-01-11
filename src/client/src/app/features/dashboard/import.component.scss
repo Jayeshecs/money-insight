@@ -278,9 +278,116 @@
     line-height: 1.6;
   }
 
-  .redirect-text {
-    color: #667eea;
+  .parser-info {
+    color: #374151;
+    margin: 1rem 0;
+    padding: 0.75rem;
+    background: #f3f4f6;
+    border-radius: 8px;
+
+    strong {
+      color: #667eea;
+    }
+  }
+
+  .transaction-preview {
+    margin-top: 2rem;
+    text-align: left;
+
+    h4 {
+      font-size: 1.125rem;
+      font-weight: 600;
+      color: #1f2937;
+      margin: 0 0 1rem;
+    }
+
+    .transaction-table {
+      max-height: 400px;
+      overflow-y: auto;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+
+      .transaction-row {
+        display: grid;
+        grid-template-columns: 100px 1fr 100px 80px;
+        gap: 0.5rem;
+        padding: 0.75rem;
+        border-bottom: 1px solid #e5e7eb;
+        font-size: 0.875rem;
+
+        &.transaction-header {
+          background: #f9fafb;
+          font-weight: 600;
+          color: #374151;
+          position: sticky;
+          top: 0;
+          z-index: 1;
+        }
+
+        &:not(.transaction-header):hover {
+          background: #f9fafb;
+        }
+
+        &:last-child {
+          border-bottom: none;
+        }
+
+        .col-date {
+          color: #6b7280;
+        }
+
+        .col-description {
+          color: #1f2937;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+
+        .col-amount {
+          font-weight: 500;
+          text-align: right;
+
+          &.debit {
+            color: #ef4444;
+          }
+
+          &.credit {
+            color: #10b981;
+          }
+        }
+
+        .col-type {
+          font-size: 0.75rem;
+          text-align: center;
+          color: #6b7280;
+        }
+      }
+
+      .more-transactions {
+        padding: 0.75rem;
+        text-align: center;
+        color: #6b7280;
+        font-size: 0.875rem;
+        background: #f9fafb;
+      }
+    }
+  }
+
+  .action-btn {
+    margin-top: 1.5rem;
+    padding: 0.75rem 1.5rem;
+    background: #667eea;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
     font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+
+    &:hover {
+      background: #5568d3;
+    }
   }
 }
 

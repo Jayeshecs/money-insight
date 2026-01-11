@@ -8,3 +8,4 @@ Cargo.lock
 
 # Test artifacts
 /wasm-pack.log
+test_output.txt
