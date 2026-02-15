@@ -1,6 +1,7 @@
 // HDFC Credit Card (v1, v2) parser module
 
 use crate::traits::{BankParser, Transaction};
+#[cfg(target_arch = "wasm32")]
 use web_sys::console;
 
 
@@ -158,6 +159,7 @@ impl BankParser for HdfcCreditCardParser {
                 
         // Extract account from credit card number in statement
         let txn_source = self.extract_card_account(&lines, &version)?;
+        #[cfg(target_arch = "wasm32")]
         console::log_1(&format!("Extracted txn_source: {}", txn_source).into());
         
         // Determine column indices based on version
@@ -166,6 +168,7 @@ impl BankParser for HdfcCreditCardParser {
             HdfcCreditVersion::V1 => (16, 20, 47, 53),
             HdfcCreditVersion::V2 => (9, 12, 20, 23),
         };
+        #[cfg(target_arch = "wasm32")]
         console::log_1(&format!("Using columns - Date: {}, Narration: {}, Amount: {}, Cr/Dr: {}", date_col, narration_col, amount_col, cr_dr_col).into());
         
         // Parse transactions starting from the row after header

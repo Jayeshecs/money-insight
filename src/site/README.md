@@ -223,7 +223,151 @@ $spacing-6: 24px;
 
 ## 📦 Deployment
 
-### Recommended Hosting: Vercel or Netlify
+### Recommended Hosting: Firebase, Vercel or Netlify
+
+#### Firebase Hosting Deployment
+
+1. **Install Firebase CLI:**
+   ```bash
+   npm install -g firebase-tools
+   ```
+
+2. **Login to Firebase:**
+   ```bash
+   firebase login
+   ```
+
+3. **Initialize Firebase in your project:**
+   ```bash
+   cd src/site
+   firebase init hosting
+   ```
+
+   Select the following options:
+   - **Existing project:** Choose your Firebase project or create a new one
+   - **Public directory:** `dist/ventio-site/browser`
+   - **Configure as a single-page app:** Yes
+   - **Set up automatic builds with GitHub:** Optional
+   - **Overwrite index.html:** No
+
+4. **Build the project:**
+   ```bash
+   npm run build:prod
+   ```
+
+5. **Deploy to Firebase:**
+   ```bash
+   firebase deploy --only hosting
+   ```
+
+6. **Deploy to specific channel (preview):**
+   ```bash
+   firebase hosting:channel:deploy preview
+   ```
+
+#### Firebase Configuration
+
+Create `firebase.json` in `src/site/` if not exists:
+
+```json
+{
+  "hosting": {
+    "public": "dist/ventio-site/browser",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ],
+    "headers": [
+      {
+        "source": "**/*.@(jpg|jpeg|gif|png|svg|webp)",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "max-age=31536000"
+          }
+        ]
+      },
+      {
+        "source": "**/*.@(js|css)",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "max-age=31536000"
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+#### Firebase Custom Domain Setup
+
+1. **Add Custom Domain in Firebase Console:**
+   - Go to Hosting → Add custom domain
+   - Enter `ventio.co.in`
+   - Follow DNS verification steps
+
+2. **Add DNS Records:**
+   - A record: `ventio.co.in` → Firebase IP (provided in console)
+   - A record: `ventio.co.in` → Firebase secondary IP (if provided)
+   - CNAME: `www.ventio.co.in` → Firebase domain
+
+3. **SSL Certificate:**
+   - Firebase automatically provisions SSL certificates
+   - May take 24-48 hours for DNS propagation
+
+#### Firebase CI/CD with GitHub Actions
+
+Create `.github/workflows/firebase-hosting.yml`:
+
+```yaml
+name: Deploy to Firebase Hosting
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'src/site/**'
+
+jobs:
+  build_and_deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          
+      - name: Install dependencies
+        run: |
+          cd src/site
+          npm ci
+          
+      - name: Build
+        run: |
+          cd src/site
+          npm run build:prod
+          
+      - name: Deploy to Firebase
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: '${{ secrets.GITHUB_TOKEN }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}'
+          channelId: live
+          projectId: your-firebase-project-id
+          entryPoint: src/site
+```
 
 #### Vercel Deployment
 
@@ -253,7 +397,7 @@ $spacing-6: 24px;
 
 Or connect your GitHub repo for automatic deployments.
 
-### Custom Domain Setup
+#### Custom Domain Setup (Vercel/Netlify)
 
 1. **Add DNS Records:**
    - A record: Point to hosting provider IP
@@ -300,6 +444,26 @@ export const environment = {
 rm -rf node_modules package-lock.json
 npm install
 ```
+
+### Firebase deployment issues
+
+**"Error: HTTP Error: 403, The caller does not have permission"**
+- Re-authenticate: `firebase login --reauth`
+- Ensure you have Owner/Editor role in Firebase project
+
+**"Error: Cannot find module 'dist/ventio-site/browser'"**
+- Build the project first: `npm run build:prod`
+- Verify `public` directory in `firebase.json` matches build output
+
+**Custom domain not working**
+- Wait 24-48 hours for DNS propagation
+- Use `dig ventio.co.in` to verify DNS records
+- Check Firebase Console → Hosting → Advanced for status
+
+**Cache not updating after deployment**
+- Firebase caching is aggressive; use versioned filenames
+- Clear browser cache or use incognito mode
+- Check `firebase.json` cache headers configuration
 
 ## 📚 Additional Resources
 

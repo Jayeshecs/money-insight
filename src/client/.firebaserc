@@ -1,0 +1,14 @@
+{
+  "projects": {
+    "default": "ventio-site"
+  },
+  "targets": {
+    "ventio-site": {
+      "hosting": {
+        "moneyinsight": [
+          "moneyinsight"
+        ]
+      }
+    }
+  }
+}
