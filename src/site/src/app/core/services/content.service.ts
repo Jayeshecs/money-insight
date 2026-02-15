@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 export interface SiteContent {
   company: {
@@ -228,7 +229,7 @@ export class ContentService {
       contact: {
         title: 'Get in Touch',
         subtitle: 'Have questions? Want early access? We\'d love to hear from you.',
-        googleFormUrl: 'https://docs.google.com/forms/d/e/1FAIpQLSfrNCYGLlNFy1JsEYrJZB6HWpFhfnz-zaw1Yi86aD5CsX7lmg/viewform'
+        googleFormUrl: environment.googleFormsUrl
       },
       faq: {
         title: 'Frequently Asked Questions',

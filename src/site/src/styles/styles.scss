@@ -1,6 +1,6 @@
-@import 'variables';
-@import 'mixins';
-@import 'typography';
+@use 'variables' as *;
+@use 'mixins' as *;
+@use 'typography';
 
 // CSS Reset
 *, *::before, *::after {
