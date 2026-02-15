@@ -1,6 +1,7 @@
 // HDFC Savings (v1, v2) parser module
 
-use crate::traits::{BankParser, Transaction};
+use crate::traits::BankParser;
+use crate::models::Transaction;
 
 pub struct HdfcSavingsParser;
 
@@ -58,7 +59,7 @@ impl BankParser for HdfcSavingsParser {
             let deposit = parts.get(5).unwrap_or(&"").trim().replace(",", "");
             
             // Determine amount and type
-            let (amount, txn_type) = if !withdrawal.is_empty() && withdrawal != "0" && withdrawal != "0.00" {
+            let (amount, _txn_type) = if !withdrawal.is_empty() && withdrawal != "0" && withdrawal != "0.00" {
                 match withdrawal.parse::<f64>() {
                     Ok(amt) if amt > 0.0 => (-amt, "DEBIT"),
                     _ => continue,
@@ -75,13 +76,24 @@ impl BankParser for HdfcSavingsParser {
             // Parse date from DD/MM/YY format
             let parsed_date = parse_hdfc_date(date)?;
             
-            transactions.push(Transaction {
-                date: parsed_date,
-                description: narration.to_string(),
-                amount,
-                account: "HDFC_SAVINGS".to_string(),
-                transaction_type: txn_type.to_string(),
-            });
+            // Determine credit indicator and transaction type
+            let is_credit = amount > 0.0;
+            let credit_indicator = if is_credit { "Yes".to_string() } else { String::new() };
+            let transaction_type = crate::models::TransactionType::from_credit_indicator_and_description(is_credit, narration);
+            let abs_amount = amount.abs();
+            
+            // Create new transaction with enhanced model
+            let transaction = Transaction::new(
+                parsed_date,
+                "HDFC_SAVINGS".to_string(),
+                narration.to_string(),
+                abs_amount,
+                credit_indicator,
+                transaction_type,
+                "HDFC_SAVINGS".to_string(),
+            );
+            
+            transactions.push(transaction);
         }
         
         if transactions.is_empty() {
@@ -374,8 +386,10 @@ Withdrawal Amt.\tDeposit Amt.\tClosing Balance";
         assert!(result.is_ok(), "Parsing should succeed for valid data");
         let transactions = result.unwrap();
         assert_eq!(transactions.len(), 2, "Should parse 2 transactions");
-        assert_eq!(transactions[0].amount, -1000.0, "First transaction should be debit");
-        assert_eq!(transactions[1].amount, 75000.0, "Second transaction should be credit");
+        assert_eq!(transactions[0].amount, 1000.0, "First transaction amount should be 1000");
+        assert_eq!(transactions[0].transaction_type, crate::models::TransactionType::Expense, "First transaction should be expense");
+        assert_eq!(transactions[1].amount, 75000.0, "Second transaction amount should be 75000");
+        assert_eq!(transactions[1].transaction_type, crate::models::TransactionType::Income, "Second transaction should be income");
     }
 
     #[test]
@@ -403,8 +417,10 @@ Withdrawal Amt.\tDeposit Amt.\tClosing Balance";
         
         assert!(result.is_ok(), "Should handle amounts with commas");
         let transactions = result.unwrap();
-        assert_eq!(transactions[0].amount, -150000.0, "Should parse 1,50,000 correctly");
+        assert_eq!(transactions[0].amount, 150000.0, "Should parse 1,50,000 correctly");
+        assert_eq!(transactions[0].transaction_type, crate::models::TransactionType::Expense, "First should be expense");
         assert_eq!(transactions[1].amount, 200000.0, "Should parse 2,00,000 correctly");
+        assert_eq!(transactions[1].transaction_type, crate::models::TransactionType::Income, "Second should be income");
     }
 
     #[test]
@@ -451,8 +467,11 @@ Withdrawal Amt.\tDeposit Amt.\tClosing Balance";
         
         assert!(result.is_ok());
         let transactions = result.unwrap();
-        assert_eq!(transactions[0].transaction_type, "DEBIT");
-        assert_eq!(transactions[1].transaction_type, "CREDIT");
+        // Check amounts and transaction types (debit = expense, credit = income)
+        assert_eq!(transactions[0].amount, 1000.0, "Debit amount should be positive");
+        assert_eq!(transactions[0].transaction_type, crate::models::TransactionType::Expense, "Debit should be expense");
+        assert_eq!(transactions[1].amount, 5000.0, "Credit amount should be positive");
+        assert_eq!(transactions[1].transaction_type, crate::models::TransactionType::Income, "Credit should be income");
     }
 
     #[test]
@@ -466,6 +485,7 @@ Withdrawal Amt.\tDeposit Amt.\tClosing Balance";
         assert!(result.is_ok());
         let transactions = result.unwrap();
         assert_eq!(transactions[0].account, "HDFC_SAVINGS");
+        assert_eq!(transactions[0].source, "HDFC_SAVINGS");
     }
 
     #[test]

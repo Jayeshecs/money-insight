@@ -25,7 +25,9 @@
 | date | Date | ✓ | Transaction date |
 | account | String | ✓ | Bank account identifier |
 | description | String | ✓ | Transaction description/merchant |
-| amount | Number | ✓ | Transaction amount (±) |
+| amount | Number | ✓ | Transaction amount (absolute value) |
+| creditIndicator | String | ✓ | "Yes" for credit transactions, empty string or other value for debit |
+| transactionType | String | ✓ | Enum: "Income", "Investment", "Expense", "Transfer" |
 | category | String | ✓ | Primary category (e.g., "Food", "Rent") |
 | subCategory | String | | Secondary category (e.g., "Dining", "Groceries") |
 | confidence | Number | ✓ | ML confidence (0-1) |
@@ -60,7 +62,9 @@
   "date": "2025-01-10",
   "account": "HDFC_SAVINGS_XXXX1234",
   "description": "UPI-SWIGGY-BANGALORE-12345",
-  "amount": -450.00,
+  "amount": 450.00,
+  "creditIndicator": "",
+  "transactionType": "Expense",
   "category": "Food",
   "subCategory": "Dining",
   "confidence": 0.92,
@@ -299,16 +303,18 @@
 | B: Date | Date | Transaction date (YYYY-MM-DD) |
 | C: Account | Text | Bank account code |
 | D: Description | Text | Transaction description/merchant |
-| E: Amount | Number | Amount (sign indicates direction) |
-| F: Category | Text | Primary category |
-| G: SubCategory | Text | Secondary category |
-| H: Confidence | Number | ML confidence (0-1) |
-| I: Status | Text | PENDING, APPROVED, FLAGGED, SYNCED |
-| J: Source | Text | Parser source (HDFC_SAVINGS, HDFC_CREDIT) |
-| K: Notes | Text | User notes |
-| L: Tags | Text | Comma-separated tags |
-| M: CreatedAt | DateTime | ISO 8601 timestamp |
-| N: LastModified | DateTime | ISO 8601 timestamp |
+| E: Amount | Number | Amount (absolute value) |
+| F: CreditIndicator | Text | "Yes" for credit, empty for debit |
+| G: TransactionType | Text | Income, Investment, Expense, Transfer |
+| H: Category | Text | Primary category |
+| I: SubCategory | Text | Secondary category |
+| J: Confidence | Number | ML confidence (0-1) |
+| K: Status | Text | PENDING, APPROVED, FLAGGED, SYNCED |
+| L: Source | Text | Parser source (HDFC_SAVINGS, HDFC_CREDIT) |
+| M: Notes | Text | User notes |
+| N: Tags | Text | Comma-separated tags |
+| O: CreatedAt | DateTime | ISO 8601 timestamp |
+| P: LastModified | DateTime | ISO 8601 timestamp |
 
 **Row 1:** Headers (frozen)
 **Data:** Starting from Row 2

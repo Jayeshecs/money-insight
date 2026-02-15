@@ -1,6 +1,7 @@
 // HDFC Credit Card (v1, v2) parser module
 
-use crate::traits::{BankParser, Transaction};
+use crate::traits::BankParser;
+use crate::models::Transaction;
 #[cfg(target_arch = "wasm32")]
 use web_sys::console;
 
@@ -208,13 +209,24 @@ impl BankParser for HdfcCreditCardParser {
             // Credit card: Cr means payment (positive), Dr means purchase (negative)
             let signed_amount = if cr_dr == "Cr" { amount } else { -amount };
             
-            transactions.push(Transaction {
-                date: txn_date,
-                description: narration.to_string(),
-                amount: signed_amount,
-                account: txn_source.clone(),
-                transaction_type: cr_dr.to_string(),
-            });
+            // Determine credit indicator and transaction type
+            let is_credit = signed_amount > 0.0;
+            let credit_indicator = if is_credit { "Yes".to_string() } else { String::new() };
+            let transaction_type = crate::models::TransactionType::from_credit_indicator_and_description(is_credit, narration);
+            let abs_amount = signed_amount.abs();
+            
+            // Create new transaction with enhanced model
+            let transaction = Transaction::new(
+                txn_date,
+                txn_source.clone(),
+                narration.to_string(),
+                abs_amount,
+                credit_indicator,
+                transaction_type,
+                "HDFC_CREDIT".to_string(),
+            );
+            
+            transactions.push(transaction);
         }
         
         if transactions.is_empty() {

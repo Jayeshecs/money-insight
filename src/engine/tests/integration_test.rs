@@ -152,14 +152,15 @@ fn test_parse_actual_hdfc_savings_xls() {
                 println!("  Date: {}", transactions[0].date);
                 println!("  Description: {}", transactions[0].description);
                 println!("  Amount: {}", transactions[0].amount);
-                println!("  Type: {}", transactions[0].transaction_type);
+                println!("  Category: {} / {:?}", transactions[0].category, transactions[0].sub_category);
+                println!("  Confidence: {:?} ({:?})", transactions[0].confidence, transactions[0].confidence_level);
                 
                 let last_idx = transactions.len() - 1;
                 println!("\nLast transaction:");
                 println!("  Date: {}", transactions[last_idx].date);
                 println!("  Description: {}", transactions[last_idx].description);
                 println!("  Amount: {}", transactions[last_idx].amount);
-                println!("  Type: {}", transactions[last_idx].transaction_type);
+                println!("  Category: {} / {:?}", transactions[last_idx].category, transactions[last_idx].sub_category);
             }
         }
         Err(e) => {
@@ -234,7 +235,8 @@ fn test_parse_actual_hdfc_credit_xls() {
                 println!("  Date: {}", transactions[0].date);
                 println!("  Description: {}", transactions[0].description);
                 println!("  Amount: {}", transactions[0].amount);
-                println!("  Type: {}", transactions[0].transaction_type);
+                println!("  Category: {} / {:?}", transactions[0].category, transactions[0].sub_category);
+                println!("  Confidence: {:?} ({:?})", transactions[0].confidence, transactions[0].confidence_level);
             }
         }
         Err(e) => {

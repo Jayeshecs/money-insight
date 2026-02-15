@@ -142,7 +142,7 @@
         
         <!-- Display parser name and transaction count -->
         <div class="parser-info" *ngIf="parsedBatch()" data-testid="parser-name">
-          Parser: <strong>{{ parsedBatch()!.source_parser }}</strong>
+          Parser: <strong>{{ parsedBatch()!.sourceParser }}</strong>
         </div>
         
         <!-- Transaction List -->
@@ -161,10 +161,14 @@
               data-testid="transaction-row">
               <span class="col-date">{{ tx.date }}</span>
               <span class="col-description">{{ tx.description }}</span>
-              <span class="col-amount" [class.debit]="tx.transaction_type === 'DEBIT'" [class.credit]="tx.transaction_type === 'CREDIT'">
+              <span class="col-amount" 
+                [class.income]="tx.transactionType === 'INCOME'" 
+                [class.expense]="tx.transactionType === 'EXPENSE'"
+                [class.investment]="tx.transactionType === 'INVESTMENT'"
+                [class.transfer]="tx.transactionType === 'TRANSFER'">
                 {{ tx.amount | number:'1.2-2' }}
               </span>
-              <span class="col-type">{{ tx.transaction_type }}</span>
+              <span class="col-type">{{ tx.transactionType }}</span>
             </div>
             <div *ngIf="parsedBatch()!.transactions.length > 10" class="more-transactions">
               ... and {{ parsedBatch()!.transactions.length - 10 }} more transactions

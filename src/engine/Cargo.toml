@@ -19,6 +19,8 @@ js-sys = "0.3"
 console_error_panic_hook = "0.1"
 md5 = "0.7"
 web-sys = { version = "0.3", features = ['Window', 'console'] }
+uuid = { version = "1.7", features = ["v4", "js", "serde"] }
+chrono = { version = "0.4", features = ["serde", "wasmbind"] }
 
 [dev-dependencies]
 wasm-bindgen-test = "0.3"

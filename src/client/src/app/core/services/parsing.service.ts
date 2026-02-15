@@ -5,20 +5,8 @@ import { map, catchError } from 'rxjs/operators';
 // Import WASM module
 import init, { WasmEngine } from '../../wasm/pkg/moneyinsight_wasm';
 
-export interface TransactionBatch {
-  source_parser: string;
-  transactions: Transaction[];
-  parse_duration_ms: number;
-  error?: string;
-}
-
-export interface Transaction {
-  date: string;
-  description: string;
-  amount: number;
-  account: string;
-  transaction_type: string;
-}
+// Import data models
+import { Transaction, TransactionBatch } from '../models/data-models';
 
 @Injectable({
   providedIn: 'root'

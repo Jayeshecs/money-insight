@@ -6,12 +6,16 @@ use calamine::{Reader, open_workbook_auto_from_rs, Data};
 use std::io::Cursor;
 
 pub mod traits;
+pub mod models;
 pub mod parsers;
+pub mod categorizer;
 mod detector;
 
-use traits::{PluginRegistry, TransactionBatch};
+use traits::{PluginRegistry};
+use models::TransactionBatch;
 use parsers::{HdfcSavingsParser, HdfcCreditCardParser};
 use detector::StatementDetector;
+use categorizer::Categorizer;
 
 /// Set up panic hook for better error messages in WASM
 #[wasm_bindgen(start)]
@@ -23,6 +27,7 @@ pub fn init_panic_hook() {
 #[wasm_bindgen]
 pub struct WasmEngine {
     registry: PluginRegistry,
+    categorizer: Categorizer,
 }
 
 #[wasm_bindgen]
@@ -36,7 +41,10 @@ impl WasmEngine {
         registry.register(Box::new(HdfcSavingsParser));
         registry.register(Box::new(HdfcCreditCardParser));
         
-        Ok(WasmEngine { registry })
+        // Initialize categorizer with default rules
+        let categorizer = Categorizer::new();
+        
+        Ok(WasmEngine { registry, categorizer })
     }
     
     /// Parse a bank statement file (Excel or CSV)
@@ -88,8 +96,13 @@ impl WasmEngine {
         };
         
         // Parse transactions
-        let transactions = parser.parse(&text_data)
+        let mut transactions = parser.parse(&text_data)
             .map_err(|e| JsValue::from_str(&format!("File could not be parsed. {}", e)))?;
+        
+        // Categorize all transactions
+        for transaction in &mut transactions {
+            self.categorizer.categorize(transaction);
+        }
         
         let batch = TransactionBatch {
             source_parser: parser.name().to_string(),

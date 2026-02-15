@@ -347,12 +347,20 @@
           font-weight: 500;
           text-align: right;
 
-          &.debit {
-            color: #ef4444;
+          &.expense {
+            color: #ef4444; // Red for expenses
           }
 
-          &.credit {
-            color: #10b981;
+          &.income {
+            color: #10b981; // Green for income
+          }
+
+          &.investment {
+            color: #3b82f6; // Blue for investments
+          }
+
+          &.transfer {
+            color: #8b5cf6; // Purple for transfers
           }
         }
 

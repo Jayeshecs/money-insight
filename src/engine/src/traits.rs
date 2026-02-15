@@ -1,25 +1,6 @@
 // Common Parser Traits (Plugin Architecture)
 
-use serde::{Deserialize, Serialize};
-
-/// Core transaction data structure
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Transaction {
-    pub date: String,           // ISO 8601: YYYY-MM-DD
-    pub description: String,
-    pub amount: f64,            // Signed: negative for debits, positive for credits
-    pub account: String,        // Account identifier (e.g., "HDFC_SAVINGS")
-    pub transaction_type: String, // "DEBIT" or "CREDIT"
-}
-
-/// Result of parsing operation
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TransactionBatch {
-    pub source_parser: String,
-    pub transactions: Vec<Transaction>,
-    pub parse_duration_ms: u64,
-    pub error: Option<String>,
-}
+use crate::models::Transaction;
 
 /// Bank parser trait - implement this for each bank/statement format
 pub trait BankParser: Send + Sync {

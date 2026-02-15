@@ -2,10 +2,12 @@ import { Component, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { FileUploadService } from '../../core/services/file-upload.service';
-import { ParsingService, TransactionBatch } from '../../core/services/parsing.service';
+import { ParsingService } from '../../core/services/parsing.service';
+import { IndexedDbService } from '../../core/services/indexeddb.service';
+import { TransactionBatch } from '../../core/models/data-models';
 
 interface UploadStatus {
-  stage: 'idle' | 'validating' | 'reading' | 'parsing' | 'complete' | 'error';
+  stage: 'idle' | 'validating' | 'reading' | 'parsing' | 'saving' | 'complete' | 'error';
   message: string;
   progress: number;
   error?: string;
@@ -32,6 +34,7 @@ export class ImportComponent {
   constructor(
     private fileUploadService: FileUploadService,
     private parsingService: ParsingService,
+    private indexedDbService: IndexedDbService,
     private router: Router
   ) {}
 
@@ -116,11 +119,24 @@ export class ImportComponent {
         throw new Error('Parsing failed');
       }
 
+      // Save to IndexedDB
+      this.uploadStatus.set({
+        stage: 'saving',
+        message: 'Saving transactions to local database...',
+        progress: 75
+      });
+
+      await this.indexedDbService.addTransactions(batch.transactions);
+      
+      // Get database stats
+      const stats = await this.indexedDbService.getDatabaseStats();
+      console.log('Database stats after save:', stats);
+
       // Success
       this.parsedBatch.set(batch);
       this.uploadStatus.set({
         stage: 'complete',
-        message: `Successfully parsed ${batch.transactions.length} transactions in ${batch.parse_duration_ms}ms`,
+        message: `Successfully parsed and saved ${batch.transactions.length} transactions from ${batch.sourceParser}`,
         progress: 100
       });
 
