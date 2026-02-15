@@ -2,6 +2,9 @@
 name = "moneyinsight-wasm"
 version = "0.1.0"
 edition = "2021"
+description = "WASM engine for client-side bank statement parsing and categorization"
+repository = "https://github.com/jayeshecs/money-insight"
+license = "MIT"
 
 [lib]
 crate-type = ["cdylib", "rlib"]
