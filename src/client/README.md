@@ -1,12 +1,12 @@
 # MoneyInsight Angular Client
 
-Privacy-first personal finance tracker frontend built with Angular 18 (standalone components).
+Privacy-first personal finance tracker frontend built with Angular 21 (standalone components).
 
 ## Prerequisites
 
 - Node.js 18+ 
 - npm 9+
-- Angular CLI 18
+- Angular CLI 21
 
 ## Quick Start
 
@@ -81,8 +81,8 @@ src/
 
 ## Key Technologies
 
-- **Angular 18** - Standalone components, signals
-- **TypeScript 5.4** - Type safety
+- **Angular 21** - Standalone components, signals
+- **TypeScript 5.9** - Type safety
 - **SCSS** - Styling
 - **RxJS 7.8** - Reactive programming
 - **WebAssembly** - High-performance parsing
@@ -369,7 +369,7 @@ cp -r pkg/ ../client/src/app/wasm/
 
 **Solution**:
 ```bash
-npm install -g @angular/cli@18
+npm install -g @angular/cli@21
 ```
 
 ### Port Already in Use

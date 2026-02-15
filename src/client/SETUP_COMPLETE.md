@@ -2,7 +2,7 @@
 
 ## Summary
 
-Successfully created a complete Angular 18 standalone application structure for the MoneyInsight client.
+Successfully created a complete Angular 21 standalone application structure for the MoneyInsight client.
 
 ## Files Created (16 files)
 
@@ -36,8 +36,8 @@ Successfully created a complete Angular 18 standalone application structure for 
 
 ## Technology Stack
 
-- **Angular 18.2** - Latest stable with standalone components
-- **TypeScript 5.4** - Strict mode enabled
+- **Angular 21.1** - Latest stable with standalone components
+- **TypeScript 5.9** - Strict mode enabled
 - **RxJS 7.8** - Reactive programming
 - **SCSS** - Styling
 - **Jasmine + Karma** - Testing
