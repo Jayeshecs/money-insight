@@ -6,9 +6,9 @@ This directory contains detailed defect reports discovered during testing of Sto
 
 | ID | Title | Severity | Priority | Status | Test Cases |
 |----|-------|----------|----------|--------|------------|
-| [DEF-001](DEF-001_Missing_Realistic_Test_Data.md) | Missing Realistic Test Data | High | High | Open | TC1, TC2 |
-| [DEF-002](DEF-002_Encryption_Detection_Unclear.md) | Encryption Detection Unclear | Medium | Medium | ✅ Resolved | TC3, TC6 |
-| [DEF-003](DEF-003_Missing_Corrupted_File_Test_Data.md) | Missing Corrupted File Test Data | Low | Low | ✅ Resolved | TC7 |
+| [DEF-001](DEF-001_Missing_Realistic_Test_Data.md) | Missing Realistic Test Data | High | High | ✅ Verified | TC1, TC2 |
+| [DEF-002](DEF-002_Encryption_Detection_Unclear.md) | Encryption Detection Unclear | Medium | Medium | ✅ Verified | TC3, TC6 |
+| [DEF-003](DEF-003_Missing_Corrupted_File_Test_Data.md) | Missing Corrupted File Test Data | Low | Low | ✅ Verified | TC7 |
 
 ## Quick Reference
 
@@ -66,11 +66,11 @@ This directory contains detailed defect reports discovered during testing of Sto
 
 | Test Case | Title | Blocking Defect(s) | Status |
 |-----------|-------|-------------------|---------|
-| TC1 | Upload HDFC Savings | DEF-001 | ⚠️ Blocked |
-| TC2 | Upload HDFC Credit Card | DEF-001 | ⚠️ Blocked |
-| TC3 | Reject Password-Protected | ~~DEF-002~~ | ✅ Unblocked |
-| TC6 | Reject Encrypted File | ~~DEF-002~~ | ✅ Unblocked |
-| TC7 | Reject Corrupted File | ~~DEF-003~~ | ✅ Unblocked |
+| TC1 | Upload HDFC Savings | ~~DEF-001~~ | ✅ Passing |
+| TC2 | Upload HDFC Credit Card | ~~DEF-001~~ | ✅ Passing |
+| TC3 | Reject Password-Protected | ~~DEF-002~~ | ✅ Passing |
+| TC6 | Reject Encrypted File | ~~DEF-002~~ | ✅ Passing |
+| TC7 | Reject Corrupted File | ~~DEF-003~~ | ✅ Passing |
 
 ### Test Cases Passing
 - TC4: Reject PDF (UI validation)
@@ -89,7 +89,7 @@ This directory contains detailed defect reports discovered during testing of Sto
 1. ✅ Identify and document defects
 2. ✅ Improve encryption detection (DEF-002) - **RESOLVED**
 3. ✅ Create corrupted test files (DEF-003) - **RESOLVED**
-4. ⏳ Create realistic test data (DEF-001) - **In Progress**
+4. ✅ Create realistic test data (DEF-001) - **RESOLVED & VERIFIED**
 
 ### Recent Updates (2026-01-04)
 
@@ -113,12 +113,12 @@ All defects must be resolved before Story #001 can be marked as "Done":
 - [x] Test data directory structure created
 - [x] Encryption detection implemented (DEF-002)
 - [x] Corrupted test files available (DEF-003)
-- [ ] Realistic test data available (DEF-001)
-- [ ] All TC1-TC7 executable
-- [ ] All TC1-TC7 passing
-- [ ] No critical or high severity defects open
+- [x] Realistic test data available (DEF-001)
+- [x] All TC1-TC7 executable
+- [x] All TC1-TC7 passing
+- [x] No critical or high severity defects open
 
-**Progress: 4/8 criteria met (50%)**
+**Progress: 8/8 criteria met (100%)** — Verified 2026-02-26
 
 ## Related Documentation
 
@@ -136,4 +136,4 @@ All defects must be resolved before Story #001 can be marked as "Done":
 
 ---
 
-*Last Updated: 2026-01-04*
+*Last Updated: 2026-02-26 — All defects verified closed; 11/11 E2E tests passing*

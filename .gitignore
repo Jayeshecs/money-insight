@@ -22,5 +22,7 @@ __pycache__/
 .DS_Store
 .env
 
-# Firebase
-.firebase/
+# Angular environment files with real credentials (use *.example as templates)
+src/client/src/environments/environment.ts
+src/client/src/environments/environment.prod.ts
+

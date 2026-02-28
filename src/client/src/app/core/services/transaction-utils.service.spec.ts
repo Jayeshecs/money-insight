@@ -31,6 +31,8 @@ describe('TransactionUtilsService', () => {
       account: 'TEST',
       description: 'Test',
       amount: -100,
+      creditIndicator: '',
+      transactionType: 'EXPENSE',
       category: 'Food',
       confidence: 0.3,
       confidenceLevel: 'LOW',

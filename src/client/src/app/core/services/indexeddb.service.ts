@@ -292,6 +292,22 @@ export class IndexedDbService {
     return (await db.put('syncQueue', entry)) as string;
   }
 
+  /**
+   * Resets all FAILED sync-queue entries back to PENDING so they will be
+   * picked up on the next processSyncQueue() call (e.g. when user presses
+   * "Retry Sync" or connectivity is restored).
+   */
+  async resetFailedSyncItems(): Promise<void> {
+    const db = await this.initDatabase();
+    const failed = await db.getAllFromIndex('syncQueue', 'by-status', 'FAILED');
+    if (failed.length === 0) return;
+    const tx = db.transaction('syncQueue', 'readwrite');
+    await Promise.all([
+      ...failed.map(entry => tx.store.put({ ...entry, status: 'PENDING', lastError: null })),
+      tx.done,
+    ]);
+  }
+
   async deleteSyncQueueEntry(id: string): Promise<void> {
     const db = await this.initDatabase();
     await db.delete('syncQueue', id);

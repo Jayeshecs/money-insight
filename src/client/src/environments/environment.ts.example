@@ -1,0 +1,9 @@
+// Copy this file to environment.ts and fill in actual values.
+// DO NOT commit environment.ts to version control.
+// NOTE: googleClientSecret must NEVER be here. Handle OAuth token exchange
+//       server-side (Firebase Functions) using PKCE for browser-based OAuth.
+export const environment = {
+  production: false,
+  googleClientId: 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com',
+  googleClientSecret: 'YOUR_GOOGLE_CLIENT_SECRET', // Google Cloud Console → OAuth 2.0 Client Secret
+};

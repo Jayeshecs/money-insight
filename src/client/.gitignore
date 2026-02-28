@@ -43,3 +43,7 @@ Thumbs.db
 
 # WASM artifacts (will be copied from engine/pkg)
 /src/app/wasm/
+
+# Firebase
+.firebase/
+

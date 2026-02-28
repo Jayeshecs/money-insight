@@ -1,12 +1,12 @@
 
 ## Sprint 1 Status
 
-- [Upload and Parse Bank Statement (WASM Engine)](../stories/story_001_Upload_and_Parse_Bank_Statement.md): **In Testing** ⚠️
+- [Upload and Parse Bank Statement (WASM Engine)](../stories/story_001_Upload_and_Parse_Bank_Statement.md): **Done** ✅
   - Implementation: ✅ Complete (WASM engine with Excel support)
   - E2E Tests: ✅ Created (Playwright suite)
-  - Test Execution: ⚠️ Blocked (DEF-001 only)
+  - Test Execution: ✅ Complete — 11/11 tests passing (2026-02-26)
   - **Defects:**
-    - [DEF-001: Missing Realistic Test Data](../testcases/story_001_defects/DEF-001_Missing_Realistic_Test_Data.md) - **High** - Open
+    - [DEF-001: Missing Realistic Test Data](../testcases/story_001_defects/DEF-001_Missing_Realistic_Test_Data.md) - **High** - ✅ **RESOLVED & VERIFIED** (2026-02-26)
     - [DEF-002: Encryption Detection Unclear](../testcases/story_001_defects/DEF-002_Encryption_Detection_Unclear.md) - **Medium** - ✅ **RESOLVED** (2026-01-04)
     - [DEF-003: Missing Corrupted File Test Data](../testcases/story_001_defects/DEF-003_Missing_Corrupted_File_Test_Data.md) - **Low** - ✅ **RESOLVED** (2026-01-04)
 - [Auto-Detect and Apply Correct Parser Plugin](../stories/story_002_Auto-Detect_and_Apply_Correct_Parser_Plugin.md): To Do
@@ -23,25 +23,28 @@
 - **Test Cases Created:** 11 (TC1-TC9 + 2 additional)
 - **Test Framework:** Playwright e2e automation
 - **Test Coverage:** File upload, parsing, validation, error handling, privacy
-- **Test Data Status:** ⚠️ Incomplete (missing realistic HDFC statement samples)
+- **Test Data Status:** ✅ Complete (HDFC Savings + Credit Card test files verified)
 
 #### Defect Summary
 | ID | Title | Severity | Status | Resolved |
 |----|-------|----------|--------|----------|
-| DEF-001 | Missing Realistic Test Data | High | Open | - |
+| DEF-001 | Missing Realistic Test Data | High | ✅ Verified | 2026-02-26 |
 | DEF-002 | Encryption Detection Unclear | Medium | ✅ Resolved | 2026-01-04 |
 | DEF-003 | Missing Corrupted File Test Data | Low | ✅ Resolved | 2026-01-04 |
 
 #### Test Execution Results
-- **Passed:** 4 (Format validation tests - UI level)
-- **Blocked:** 2 (Parser accuracy tests - missing test data: TC1, TC2)
-- **Ready:** 5 (Encryption, corruption, drag-drop, privacy: TC3, TC6, TC7, TC8, TC9)
+- **Passed:** 11/11 (all test cases) — verified 2026-02-26
+- **Blocked:** 0
+- **Ready:** 0 (all executed)
 - **Total:** 11 test cases
 
-**Recent Fixes (2026-01-04):**
+**Recent Fixes (2026-02-26):**
+- ✅ DEF-001: TC1 and TC2 verified passing — root cause was a Playwright strict-mode locator bug, not missing data
+- ✅ TC8, TC9: Now passing (were timing out due to same upstream parser failure)
+
+**Earlier Fixes (2026-01-04):**
 - ✅ DEF-002: Moved encryption detection to WASM layer for reliability
 - ✅ DEF-003: Created 3 corrupted test files using Python script
-- ⏳ DEF-001: Still pending realistic HDFC statement samples
 
 **Detailed Reports:**
 - [Manual Test Execution Report](../testcases/story_001_testdata/MANUAL_TEST_REPORT.md)

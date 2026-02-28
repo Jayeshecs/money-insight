@@ -1,5 +1,9 @@
 ## Story: Upload and Parse Bank Statement (WASM Engine)
 
+**Status:** ✅ QA Verified — All Tests Passing  
+**Sprint:** Sprint 1  
+**Last Updated:** 2026-02-28
+
 **As a** privacy-focused user  
 **I want** to upload my bank statement (Excel/CSV) and have it parsed in-browser  
 **So that** my financial data never leaves my device

@@ -1,0 +1,10 @@
+// Copy this file to environment.prod.ts and fill in actual values.
+// DO NOT commit environment.prod.ts to version control.
+// In CI/CD (GitHub Actions), this file is generated from GitHub Secrets.
+// NOTE: googleClientSecret must NEVER be here. Handle OAuth token exchange
+//       server-side (Firebase Functions) using PKCE for browser-based OAuth.
+export const environment = {
+  production: true,
+  googleClientId: 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com',
+  googleClientSecret: 'YOUR_GOOGLE_CLIENT_SECRET', // Google Cloud Console → OAuth 2.0 Client Secret
+};

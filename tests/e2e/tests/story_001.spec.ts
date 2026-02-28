@@ -13,6 +13,10 @@ const TEST_DATA_DIR = path.join(__dirname, '../../../docs/testcases/story_001_te
 test.describe('Story #001: Upload and Parse Bank Statement', () => {
   
   test.beforeEach(async ({ page }) => {
+    // Capture browser console to show WASM debug logs in test output
+    page.on('console', msg => {
+      console.log(`[BROWSER ${msg.type().toUpperCase()}] ${msg.text()}`);
+    });
     // Navigate to the import screen
     await page.goto('/import');
     await expect(page).toHaveTitle(/MoneyInsight/);
@@ -39,7 +43,7 @@ test.describe('Story #001: Upload and Parse Bank Statement', () => {
     await expect(page.locator('[data-testid="transaction-list"]')).toBeVisible();
     
     // Verify parser name is shown
-    await expect(page.locator('text=HDFC Savings Account')).toBeVisible();
+    await expect(page.locator('[data-testid="parser-name"]')).toContainText('HDFC Savings Account');
     
     // Verify at least one transaction is displayed
     const transactionRows = page.locator('[data-testid="transaction-row"]');
@@ -67,7 +71,7 @@ test.describe('Story #001: Upload and Parse Bank Statement', () => {
     await expect(page.locator('[data-testid="transaction-list"]')).toBeVisible();
     
     // Verify parser name is shown
-    await expect(page.locator('text=HDFC Credit Card')).toBeVisible();
+    await expect(page.locator('[data-testid="parser-name"]')).toContainText('HDFC Credit Card');
     
     // Verify at least one transaction is displayed
     const transactionRows = page.locator('[data-testid="transaction-row"]');

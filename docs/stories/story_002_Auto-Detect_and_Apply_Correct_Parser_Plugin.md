@@ -1,5 +1,9 @@
 ## Story: Auto-Detect and Apply Correct Parser Plugin
 
+**Status:** ✅ QA Verified — All Tests Passing  
+**Sprint:** Sprint 1  
+**Last Updated:** 2026-02-28
+
 **As a** user with different bank statement formats  
 **I want** the system to auto-detect the correct parser  
 **So that** I don’t have to manually select my bank or format

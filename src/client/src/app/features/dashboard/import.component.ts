@@ -4,7 +4,9 @@ import { Router } from '@angular/router';
 import { FileUploadService } from '../../core/services/file-upload.service';
 import { ParsingService } from '../../core/services/parsing.service';
 import { IndexedDbService } from '../../core/services/indexeddb.service';
+import { SyncService } from '../../core/services/sync.service';
 import { TransactionBatch } from '../../core/models/data-models';
+import { SyncStatusComponent } from '../import/sync-status/sync-status.component';
 
 interface UploadStatus {
   stage: 'idle' | 'validating' | 'reading' | 'parsing' | 'saving' | 'complete' | 'error';
@@ -16,7 +18,7 @@ interface UploadStatus {
 @Component({
   selector: 'app-import',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, SyncStatusComponent],
   templateUrl: './import.component.html',
   styleUrls: ['./import.component.scss']
 })
@@ -35,6 +37,7 @@ export class ImportComponent {
     private fileUploadService: FileUploadService,
     private parsingService: ParsingService,
     private indexedDbService: IndexedDbService,
+    private syncService: SyncService,
     private router: Router
   ) {}
 
@@ -127,12 +130,12 @@ export class ImportComponent {
       });
 
       await this.indexedDbService.addTransactions(batch.transactions);
-      
+
       // Get database stats
       const stats = await this.indexedDbService.getDatabaseStats();
       console.log('Database stats after save:', stats);
 
-      // Success
+      // Success — update UI before triggering async sync
       this.parsedBatch.set(batch);
       this.uploadStatus.set({
         stage: 'complete',
@@ -142,8 +145,14 @@ export class ImportComponent {
 
       // Store in session/state
       sessionStorage.setItem('parsedTransactions', JSON.stringify(batch));
-      
-      // Don't auto-navigate - let user review results
+
+      // Trigger Google Sheets sync automatically post-import (PO/PM decision §3.1)
+      // Runs asynchronously — UI updates via SyncStatusComponent subscription
+      this.syncService.triggerPostImport(batch.transactions).catch(err =>
+        console.error('Sync trigger failed:', err)
+      );
+
+      // Don't auto-navigate — let user review results
 
     } catch (error: any) {
       this.uploadStatus.set({

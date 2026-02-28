@@ -78,6 +78,21 @@ impl WasmEngine {
             return Err(JsValue::from_str(&format!("Invalid file structure: {}", e)));
         }
         
+        // Debug: log what WASM sees before detection
+        #[cfg(target_arch = "wasm32")]
+        {
+            use web_sys::console;
+            let first_30_lines: String = text_data
+                .lines()
+                .take(30)
+                .enumerate()
+                .map(|(i, line)| format!("{}| {}", i + 1, line))
+                .collect::<Vec<_>>()
+                .join("\n");
+            console::log_1(&format!("TSV First 30 lines:\n{}", first_30_lines).into());
+            console::log_1(&format!("Calling auto-detect with {} bytes of data", text_data.len()).into());
+        }
+
         // Auto-detect parser using enhanced detector
         let detection = StatementDetector::detect(&self.registry.parsers, &text_data);
         
@@ -288,6 +303,21 @@ impl WasmEngine {
                 .map_err(|e| JsValue::from_str(&format!("Invalid UTF-8 in file: {}", e)))?
         };
         
+        // Debug: log what WASM sees during detect_format
+        #[cfg(target_arch = "wasm32")]
+        {
+            use web_sys::console;
+            let first_30_lines: String = text_data
+                .lines()
+                .take(30)
+                .enumerate()
+                .map(|(i, line)| format!("{}| {}", i + 1, line))
+                .collect::<Vec<_>>()
+                .join("\n");
+            console::log_1(&format!("[detect_format] TSV First 30 lines:\n{}", first_30_lines).into());
+            console::log_1(&format!("[detect_format] Calling auto-detect with {} bytes of data", text_data.len()).into());
+        }
+
         // Validate structure
         let structure_valid = StatementDetector::validate_structure(&text_data).is_ok();
         
