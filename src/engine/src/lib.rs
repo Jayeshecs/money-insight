@@ -4,6 +4,7 @@ use wasm_bindgen::prelude::*;
 use js_sys::Uint8Array;
 use calamine::{Reader, open_workbook_auto_from_rs, Data};
 use std::io::Cursor;
+use std::collections::HashMap;
 
 pub mod traits;
 pub mod models;
@@ -12,7 +13,7 @@ pub mod categorizer;
 mod detector;
 
 use traits::{PluginRegistry};
-use models::TransactionBatch;
+use models::{Transaction, TransactionBatch, DashboardSummary, CategoryStats, PeriodSummary};
 use parsers::{HdfcSavingsParser, HdfcCreditCardParser};
 use detector::StatementDetector;
 use categorizer::Categorizer;
@@ -78,6 +79,10 @@ impl WasmEngine {
             return Err(JsValue::from_str(&format!("Invalid file structure: {}", e)));
         }
         
+        // Capture parse start time (WASM only — std::time::Instant not available in wasm32)
+        #[cfg(target_arch = "wasm32")]
+        let start_time = js_sys::Date::now();
+
         // Debug: log what WASM sees before detection
         #[cfg(target_arch = "wasm32")]
         {
@@ -118,11 +123,20 @@ impl WasmEngine {
         for transaction in &mut transactions {
             self.categorizer.categorize(transaction);
         }
+
+        // Capture parse duration using JS performance clock
+        #[cfg(target_arch = "wasm32")]
+        let parse_duration_ms = {
+            let end = js_sys::Date::now();
+            (end - start_time) as u64
+        };
+        #[cfg(not(target_arch = "wasm32"))]
+        let parse_duration_ms = 0u64;
         
         let batch = TransactionBatch {
             source_parser: parser.name().to_string(),
             transactions,
-            parse_duration_ms: 0, // Timing not available in WASM
+            parse_duration_ms,
             error: None,
         };
         
@@ -339,6 +353,102 @@ impl WasmEngine {
     }
 }
 
+// ============================================================================
+// Standalone WASM functions
+// ============================================================================
+
+/// Pure helper: deserialize JSON array of Transaction objects.
+/// Separated from the WASM binding so it can be unit-tested natively.
+fn parse_transactions_json(json: &str) -> Result<Vec<Transaction>, String> {
+    serde_json::from_str(json).map_err(|e| format!("Invalid transactions JSON: {}", e))
+}
+
+/// Compute an aggregated dashboard summary from a JSON array of Transaction objects.
+///
+/// Accepts the `transactions` array previously returned by `parse_file()` (or loaded
+/// from IndexedDB) and returns a `DashboardSummary` JSON with totals, category
+/// breakdown, source breakdown, and the date range covered.
+///
+/// # Arguments
+/// * `transactions_json` - JSON string: an **array** of `Transaction` objects
+///
+/// # Returns
+/// JSON string of `DashboardSummary` or an error.
+#[wasm_bindgen]
+pub fn get_dashboard_summary(transactions_json: &str) -> Result<String, JsValue> {
+    let transactions = parse_transactions_json(transactions_json)
+        .map_err(|e| JsValue::from_str(&e))?;
+
+    let summary = compute_dashboard_summary(&transactions);
+
+    serde_json::to_string(&summary)
+        .map_err(|e| JsValue::from_str(&format!("Failed to serialize dashboard summary: {}", e)))
+}
+
+/// Pure function: compute DashboardSummary from a slice of Transactions.
+/// Separated from the WASM binding to allow native unit testing.
+pub fn compute_dashboard_summary(transactions: &[Transaction]) -> DashboardSummary {
+    let mut total_credit = 0.0_f64;
+    let mut total_debit = 0.0_f64;
+    let mut category_breakdown: HashMap<String, CategoryStats> = HashMap::new();
+    let mut source_breakdown: HashMap<String, usize> = HashMap::new();
+    let mut from_date: Option<String> = None;
+    let mut to_date: Option<String> = None;
+
+    for txn in transactions {
+        let is_credit = txn.credit_indicator == "Yes";
+
+        if is_credit {
+            total_credit += txn.amount;
+        } else {
+            total_debit += txn.amount;
+            // Category breakdown for debit (spending) transactions only
+            let stats = category_breakdown
+                .entry(txn.category.clone())
+                .or_insert(CategoryStats { total_amount: 0.0, count: 0, percentage: 0.0 });
+            stats.total_amount += txn.amount;
+            stats.count += 1;
+        }
+
+        // Source (parser) breakdown — counts all transaction types
+        *source_breakdown.entry(txn.source.clone()).or_insert(0) += 1;
+
+        // Track date range
+        match &from_date {
+            None => from_date = Some(txn.date.clone()),
+            Some(d) if txn.date < *d => from_date = Some(txn.date.clone()),
+            _ => {}
+        }
+        match &to_date {
+            None => to_date = Some(txn.date.clone()),
+            Some(d) if txn.date > *d => to_date = Some(txn.date.clone()),
+            _ => {}
+        }
+    }
+
+    // Calculate per-category percentage of total debit spend
+    if total_debit > 0.0 {
+        for stats in category_breakdown.values_mut() {
+            stats.percentage = (stats.total_amount / total_debit) * 100.0;
+        }
+    }
+
+    let period = match (from_date, to_date) {
+        (Some(from), Some(to)) => Some(PeriodSummary { from_date: from, to_date: to }),
+        _ => None,
+    };
+
+    DashboardSummary {
+        transaction_count: transactions.len(),
+        total_credit,
+        total_debit,
+        net_flow: total_credit - total_debit,
+        category_breakdown,
+        source_breakdown,
+        period,
+    }
+}
+
 #[cfg(all(test, target_arch = "wasm32"))]
 mod wasm_tests {
     use super::*;
@@ -408,5 +518,132 @@ mod native_tests {
         let parser = registry.auto_detect(sample_data);
         
         assert!(parser.is_none());
+    }
+
+    // =========================================================================
+    // Story 005: Dashboard Summary Tests
+    // =========================================================================
+
+    fn make_txn(date: &str, narration: &str, amount: f64, credit: bool, category: &str) -> Transaction {
+        use models::{TransactionType, ConfidenceLevel, TransactionStatus};
+        Transaction {
+            id: uuid::Uuid::new_v4().to_string(),
+            date: date.to_string(),
+            account: "HDFC_SAVINGS".to_string(),
+            narration: narration.to_string(),
+            amount,
+            credit_indicator: if credit { "Yes".to_string() } else { String::new() },
+            transaction_type: if credit { TransactionType::Income } else { TransactionType::Expense },
+            category: category.to_string(),
+            sub_category: None,
+            confidence: 0.9,
+            confidence_level: ConfidenceLevel::High,
+            status: TransactionStatus::Pending,
+            source: "HDFC_SAVINGS".to_string(),
+            memo_notes: None,
+            tags: vec![],
+            created_at: "2025-01-01T00:00:00Z".to_string(),
+            last_modified: "2025-01-01T00:00:00Z".to_string(),
+            synced: false,
+        }
+    }
+
+    #[test]
+    fn test_dashboard_summary_empty_input() {
+        let summary = compute_dashboard_summary(&[]);
+        assert_eq!(summary.transaction_count, 0);
+        assert_eq!(summary.total_credit, 0.0);
+        assert_eq!(summary.total_debit, 0.0);
+        assert_eq!(summary.net_flow, 0.0);
+        assert!(summary.category_breakdown.is_empty());
+        assert!(summary.period.is_none());
+    }
+
+    #[test]
+    fn test_dashboard_summary_credit_debit_split() {
+        let txns = vec![
+            make_txn("2025-01-05", "SALARY CREDIT", 45000.0, true, "Income"),
+            make_txn("2025-01-10", "UPI-SWIGGY", 450.0, false, "Food"),
+            make_txn("2025-01-11", "UPI-AMAZON", 1200.0, false, "Shopping"),
+        ];
+        let summary = compute_dashboard_summary(&txns);
+        assert_eq!(summary.transaction_count, 3);
+        assert!((summary.total_credit - 45000.0).abs() < 0.01);
+        assert!((summary.total_debit - 1650.0).abs() < 0.01);
+        assert!((summary.net_flow - 43350.0).abs() < 0.01);
+    }
+
+    #[test]
+    fn test_dashboard_summary_category_breakdown() {
+        let txns = vec![
+            make_txn("2025-01-10", "SWIGGY", 450.0, false, "Food"),
+            make_txn("2025-01-11", "ZOMATO", 300.0, false, "Food"),
+            make_txn("2025-01-12", "AMAZON", 1200.0, false, "Shopping"),
+        ];
+        let summary = compute_dashboard_summary(&txns);
+        assert_eq!(summary.category_breakdown.len(), 2);
+        let food = &summary.category_breakdown["Food"];
+        assert!((food.total_amount - 750.0).abs() < 0.01);
+        assert_eq!(food.count, 2);
+        let shopping = &summary.category_breakdown["Shopping"];
+        assert!((shopping.total_amount - 1200.0).abs() < 0.01);
+        assert_eq!(shopping.count, 1);
+    }
+
+    #[test]
+    fn test_dashboard_summary_category_percentage() {
+        let txns = vec![
+            make_txn("2025-01-10", "SWIGGY", 500.0, false, "Food"),
+            make_txn("2025-01-11", "AMAZON", 500.0, false, "Shopping"),
+        ];
+        let summary = compute_dashboard_summary(&txns);
+        let food_pct = summary.category_breakdown["Food"].percentage;
+        let shop_pct = summary.category_breakdown["Shopping"].percentage;
+        assert!((food_pct - 50.0).abs() < 0.01);
+        assert!((shop_pct - 50.0).abs() < 0.01);
+    }
+
+    #[test]
+    fn test_dashboard_summary_period_range() {
+        let txns = vec![
+            make_txn("2025-03-15", "TXN A", 100.0, false, "Food"),
+            make_txn("2025-01-01", "TXN B", 200.0, false, "Food"),
+            make_txn("2025-06-30", "TXN C", 300.0, false, "Food"),
+        ];
+        let summary = compute_dashboard_summary(&txns);
+        let period = summary.period.unwrap();
+        assert_eq!(period.from_date, "2025-01-01");
+        assert_eq!(period.to_date, "2025-06-30");
+    }
+
+    #[test]
+    fn test_dashboard_summary_source_breakdown() {
+        let txns = vec![
+            make_txn("2025-01-10", "TXN A", 100.0, false, "Food"),
+            make_txn("2025-01-11", "TXN B", 200.0, false, "Food"),
+        ];
+        let summary = compute_dashboard_summary(&txns);
+        assert_eq!(summary.source_breakdown.get("HDFC_SAVINGS"), Some(&2));
+    }
+
+    #[test]
+    fn test_get_dashboard_summary_from_json() {
+        // TC3 analog: verify JSON round-trip via the pure helper
+        let txns = vec![
+            make_txn("2025-01-05", "SALARY", 45000.0, true, "Income"),
+            make_txn("2025-01-10", "SWIGGY", 450.0, false, "Food"),
+        ];
+        let txns_json = serde_json::to_string(&txns).unwrap();
+        let parsed = parse_transactions_json(&txns_json).unwrap();
+        let summary = compute_dashboard_summary(&parsed);
+        assert_eq!(summary.transaction_count, 2);
+        assert!((summary.total_credit - 45000.0).abs() < 0.01);
+        assert!((summary.total_debit - 450.0).abs() < 0.01);
+    }
+
+    #[test]
+    fn test_parse_transactions_json_invalid() {
+        let result = parse_transactions_json("not-valid-json");
+        assert!(result.is_err());
     }
 }

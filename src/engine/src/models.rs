@@ -2,6 +2,7 @@
 // Reference: docs/design/02_DATA_MODEL.md
 
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use uuid::Uuid;
 use chrono::Utc;
 
@@ -18,8 +19,8 @@ pub struct Transaction {
     /// Bank account identifier (e.g., "HDFC_SAVINGS_XXXX1234")
     pub account: String,
     
-    /// Transaction description/merchant
-    pub description: String,
+    /// Transaction description/merchant (HDFC field: Narration)
+    pub narration: String,
     
     /// Transaction amount (absolute value)
     pub amount: f64,
@@ -72,7 +73,7 @@ impl Transaction {
     pub fn new(
         date: String,
         account: String,
-        description: String,
+        narration: String,
         amount: f64,
         credit_indicator: String,
         transaction_type: TransactionType,
@@ -85,7 +86,7 @@ impl Transaction {
             id,
             date,
             account,
-            description,
+            narration,
             amount,
             credit_indicator,
             transaction_type,
@@ -201,6 +202,46 @@ pub struct TransactionBatch {
     pub transactions: Vec<Transaction>,
     pub parse_duration_ms: u64,
     pub error: Option<String>,
+}
+
+/// Dashboard summary computed from a set of transactions by get_dashboard_summary()
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DashboardSummary {
+    /// Total number of transactions in the dataset
+    pub transaction_count: usize,
+    /// Sum of all credit (incoming) amounts
+    pub total_credit: f64,
+    /// Sum of all debit (outgoing) amounts
+    pub total_debit: f64,
+    /// Net flow = totalCredit - totalDebit
+    pub net_flow: f64,
+    /// Per-category spending stats (debit transactions only)
+    pub category_breakdown: HashMap<String, CategoryStats>,
+    /// Per-source (parser) transaction counts
+    pub source_breakdown: HashMap<String, usize>,
+    /// Date range of the transactions
+    pub period: Option<PeriodSummary>,
+}
+
+/// Aggregate stats for a single category
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CategoryStats {
+    /// Total absolute amount spent in this category
+    pub total_amount: f64,
+    /// Number of transactions in this category
+    pub count: usize,
+    /// Percentage of total debit spend (0-100)
+    pub percentage: f64,
+}
+
+/// Date range summary
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PeriodSummary {
+    pub from_date: String,
+    pub to_date: String,
 }
 
 /// Categorization Rule entity

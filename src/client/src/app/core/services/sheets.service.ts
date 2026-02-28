@@ -109,7 +109,7 @@ export class SheetsService {
         txn.id,                                                 // A: ID
         txn.date,                                               // B: Date
         txn.account,                                            // C: Account
-        txn.description,                                        // D: Description
+        txn.narration,                                         // D: Narration
         txn.amount,                                             // E: Amount
         txn.creditIndicator,                                    // F: CreditIndicator
         txn.transactionType,                                    // G: TransactionType

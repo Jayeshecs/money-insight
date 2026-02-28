@@ -9,7 +9,7 @@ export interface Transaction {
   id: string;                          // UUID v4
   date: string;                        // ISO 8601: YYYY-MM-DD
   account: string;                     // Bank account identifier
-  description: string;                 // Transaction description/merchant
+  narration: string;                   // Transaction narration/description/merchant
   amount: number;                      // Absolute value
   creditIndicator: string;             // "Yes" for credit, empty string for debit
   transactionType: TransactionType;    // Income/Investment/Expense/Transfer
@@ -91,4 +91,27 @@ export interface Setting {
   value: any;
   settingType: SettingType;
   updatedAt: string;
+}
+
+// ==================== Dashboard Summary Models ====================
+
+export interface CategoryStats {
+  totalAmount: number;
+  count: number;
+  percentage: number;
+}
+
+export interface PeriodSummary {
+  fromDate: string;
+  toDate: string;
+}
+
+export interface DashboardSummary {
+  transactionCount: number;
+  totalCredit: number;
+  totalDebit: number;
+  netFlow: number;
+  categoryBreakdown: Record<string, CategoryStats>;
+  sourceBreakdown: Record<string, number>;
+  period: PeriodSummary | null;
 }

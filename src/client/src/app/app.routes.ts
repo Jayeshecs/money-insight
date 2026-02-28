@@ -5,6 +5,13 @@ export const routes: Routes = [
   { path: '', redirectTo: '/import', pathMatch: 'full' },
   { path: 'import', component: ImportComponent },
   {
+    path: 'dashboard',
+    loadComponent: () =>
+      import('./features/dashboard/dashboard.component').then(
+        m => m.DashboardComponent
+      ),
+  },
+  {
     path: 'auth/callback',
     loadComponent: () =>
       import('./features/auth/auth-callback/auth-callback.component').then(
@@ -19,3 +26,4 @@ export const routes: Routes = [
       ),
   },
 ];
+

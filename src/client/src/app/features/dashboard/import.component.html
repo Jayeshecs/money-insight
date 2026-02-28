@@ -151,7 +151,7 @@
           <div class="transaction-table">
             <div class="transaction-row transaction-header">
               <span class="col-date">Date</span>
-              <span class="col-description">Description</span>
+              <span class="col-description">Narration</span>
               <span class="col-amount">Amount</span>
               <span class="col-type">Type</span>
             </div>
@@ -160,7 +160,7 @@
               class="transaction-row"
               data-testid="transaction-row">
               <span class="col-date">{{ tx.date }}</span>
-              <span class="col-description">{{ tx.description }}</span>
+              <span class="col-description">{{ tx.narration }}</span>
               <span class="col-amount" 
                 [class.income]="tx.transactionType === 'INCOME'" 
                 [class.expense]="tx.transactionType === 'EXPENSE'"

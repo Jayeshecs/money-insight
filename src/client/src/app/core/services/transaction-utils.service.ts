@@ -216,7 +216,7 @@ export class TransactionUtilsService {
   searchTransactions(transactions: Transaction[], searchTerm: string): Transaction[] {
     const term = searchTerm.toLowerCase();
     return transactions.filter(txn =>
-      txn.description.toLowerCase().includes(term) ||
+      txn.narration.toLowerCase().includes(term) ||
       txn.category.toLowerCase().includes(term) ||
       (txn.subCategory && txn.subCategory.toLowerCase().includes(term))
     );

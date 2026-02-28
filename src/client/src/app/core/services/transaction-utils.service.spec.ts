@@ -29,7 +29,7 @@ describe('TransactionUtilsService', () => {
       id: '1',
       date: '2025-01-01',
       account: 'TEST',
-      description: 'Test',
+      narration: 'Test',
       amount: -100,
       creditIndicator: '',
       transactionType: 'EXPENSE',

@@ -96,51 +96,71 @@ impl PluginRegistry {
 
 ### 2.2 Data Structures
 
-**File:** `src/lib.rs`
+**File:** `src/models.rs` (`#[serde(rename_all = "camelCase")]` applied throughout — all JSON keys are camelCase)
 
 ```rust
-use serde::{Deserialize, Serialize};
-
+/// Full transaction model (IndexedDB schema + WASM JSON output)
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Transaction {
-    pub date: String,           // ISO 8601: YYYY-MM-DD
-    pub description: String,    // Merchant/transaction description
-    pub amount: f64,           // Positive for income, negative for expense
-    pub account: String,       // Account identifier
-    pub transaction_type: String, // DEBIT, CREDIT, etc.
+    pub id: String,               // UUID v4
+    pub date: String,             // ISO 8601: YYYY-MM-DD
+    pub account: String,          // Account identifier (e.g. "HDFC_SAVINGS")
+    pub narration: String,        // Merchant / transaction description (HDFC field: Narration)
+    pub amount: f64,              // Absolute value
+    pub credit_indicator: String, // "Yes" for credit, "" for debit
+    pub transaction_type: TransactionType, // INCOME / EXPENSE / INVESTMENT / TRANSFER
+    pub category: String,         // Primary category (e.g. "Food")
+    pub sub_category: Option<String>,
+    pub confidence: f64,          // ML confidence 0.0-1.0
+    pub confidence_level: ConfidenceLevel, // HIGH / MEDIUM / LOW
+    pub status: TransactionStatus, // PENDING / APPROVED / FLAGGED / SYNCED
+    pub source: String,           // Parser source (e.g. "HDFC_SAVINGS")
+    pub memo_notes: Option<String>,
+    pub tags: Vec<String>,
+    pub created_at: String,       // ISO 8601 timestamp
+    pub last_modified: String,    // ISO 8601 timestamp
+    pub synced: bool,             // Whether synced to Google Sheets
 }
 
+/// Batch result returned by parse_file()
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CategorizedTransaction {
-    pub transaction: Transaction,
-    pub category: String,      // e.g., "Food"
-    pub sub_category: String,  // e.g., "Dining"
-    pub confidence: f64,       // 0.0 to 1.0
-    pub confidence_level: ConfidenceLevel,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "UPPERCASE")]
-pub enum ConfidenceLevel {
-    High,    // > 0.9
-    Medium,  // 0.6 - 0.9
-    Low,     // < 0.6
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct TransactionBatch {
-    pub source_parser: String,  // e.g., "HDFC_SAVINGS"
-    pub transactions: Vec<CategorizedTransaction>,
-    pub parse_duration_ms: u64,
-    pub categorization_duration_ms: u64,
+    pub source_parser: String,     // e.g. "HDFC Savings Account"
+    pub transactions: Vec<Transaction>,
+    pub parse_duration_ms: u64,   // Measured using js_sys::Date::now() in WASM; 0 on native
     pub error: Option<String>,
 }
 
+/// Dashboard summary — output of get_dashboard_summary()
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CategorizedResult {
-    pub category: String,
-    pub sub_category: String,
-    pub confidence: f64,
+#[serde(rename_all = "camelCase")]
+pub struct DashboardSummary {
+    pub transaction_count: usize,
+    pub total_credit: f64,         // Sum of all incoming amounts
+    pub total_debit: f64,          // Sum of all outgoing amounts
+    pub net_flow: f64,             // totalCredit - totalDebit
+    /// Per-category spending stats for DEBIT transactions only
+    pub category_breakdown: HashMap<String, CategoryStats>,
+    /// Per-parser-source transaction counts
+    pub source_breakdown: HashMap<String, usize>,
+    pub period: Option<PeriodSummary>, // Date range covered
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CategoryStats {
+    pub total_amount: f64,
+    pub count: usize,
+    pub percentage: f64,   // % of total debit spend (0-100)
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PeriodSummary {
+    pub from_date: String,  // ISO 8601
+    pub to_date: String,    // ISO 8601
 }
 ```
 
@@ -148,14 +168,43 @@ pub struct CategorizedResult {
 
 **File:** `src/lib.rs` (wasm-bindgen exports)
 
-```rust
-use wasm_bindgen::prelude::*;
+All public functions are annotated `#[wasm_bindgen]`.
 
-#[wasm_bindgen]
-pub struct WasmEngine {
-    registry: PluginRegistry,
-    categorizer: Box<dyn Categorizer>,
-}
+#### `WasmEngine` class methods
+
+| Method | Signature | Description |
+|--------|-----------|-------------|
+| `new()` | `() → WasmEngine` | Initialize engine; registers all parsers and categorizer |
+| `parse_file()` | `(Uint8Array, fileName: &str) → String` | Auto-detect, parse and categorize; returns `TransactionBatch` JSON |
+| `detect_format()` | `(Uint8Array, fileName: &str) → String` | Detection only (no parse); returns detection result JSON |
+| `list_parsers()` | `() → JsValue` | Returns JS array of available parser names |
+
+#### Standalone exported functions
+
+| Function | Signature | Description |
+|----------|-----------|-------------|
+| `get_dashboard_summary()` | `(transactions_json: &str) → String` | Accepts a JSON **array** of `Transaction` objects; returns `DashboardSummary` JSON |
+
+#### `get_dashboard_summary()` — Story 005
+
+This is the core delivery of Story 005. The Angular dashboard calls this function with the transactions stored in IndexedDB to get pre-aggregated metrics without additional client-side computation.
+
+**Input:** JSON array of `Transaction` objects (same shape as `TransactionBatch.transactions`).
+
+**Output:** `DashboardSummary` JSON.
+
+```typescript
+// Angular usage example
+const txns = await indexedDbService.getAllTransactions();
+const summaryJson = get_dashboard_summary(JSON.stringify(txns));
+const summary: DashboardSummary = JSON.parse(summaryJson);
+// summary.totalCredit, summary.totalDebit, summary.netFlow,
+// summary.categoryBreakdown, summary.sourceBreakdown, summary.period
+```
+
+**Note:** `get_dashboard_summary` only counts DEBIT transactions in `categoryBreakdown` (spending analysis). CREDIT transactions contribute to `totalCredit` and `netFlow` but are excluded from spending breakdown.
+
+Complete API code signatures:
 
 #[wasm_bindgen]
 impl WasmEngine {
@@ -414,20 +463,41 @@ wasm-pack build --target web
 ### 8.2 Angular Integration
 
 ```typescript
-// In Angular service
-import init, { WasmEngine } from '@moneyinsight/wasm';
+// parsing.service.ts — WASM engine wrapper
+import init, { WasmEngine, get_dashboard_summary } from '../../wasm/pkg/moneyinsight_wasm';
+import { BehaviorSubject } from 'rxjs';
 
 export class ParsingService {
   private wasmEngine: WasmEngine | null = null;
-  
+
   async initialize() {
-    await init();  // Load WASM module
+    await init('/wasm/pkg/moneyinsight_wasm_bg.wasm');
     this.wasmEngine = new WasmEngine();
   }
-  
-  parseFile(fileData: string, bankHint?: string): TransactionBatch {
-    const result = this.wasmEngine!.parse_file(fileData, bankHint);
+
+  parseFile(fileData: ArrayBuffer, fileName: string): TransactionBatch {
+    const uint8 = new Uint8Array(fileData);
+    const result = this.wasmEngine!.parse_file(uint8, fileName);
     return JSON.parse(result);
+  }
+}
+
+// dashboard-state.service.ts — reactive state for Story 005
+import { Injectable, signal } from '@angular/core';
+import { DashboardSummary, Transaction } from '../models/data-models';
+
+@Injectable({ providedIn: 'root' })
+export class DashboardStateService {
+  /** Latest parsed batch transactions — writable by ImportComponent */
+  readonly transactions = signal<Transaction[]>([]);
+  /** Pre-computed dashboard summary — updated whenever transactions change */
+  readonly dashboardSummary = signal<DashboardSummary | null>(null);
+
+  /** Called by ImportComponent after a successful parse + IndexedDB save */
+  updateTransactions(txns: Transaction[]): void {
+    this.transactions.set(txns);
+    const summaryJson = get_dashboard_summary(JSON.stringify(txns));
+    this.dashboardSummary.set(JSON.parse(summaryJson));
   }
 }
 ```

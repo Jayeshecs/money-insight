@@ -5,6 +5,7 @@ import { FileUploadService } from '../../core/services/file-upload.service';
 import { ParsingService } from '../../core/services/parsing.service';
 import { IndexedDbService } from '../../core/services/indexeddb.service';
 import { SyncService } from '../../core/services/sync.service';
+import { DashboardStateService } from '../../core/services/dashboard-state.service';
 import { TransactionBatch } from '../../core/models/data-models';
 import { SyncStatusComponent } from '../import/sync-status/sync-status.component';
 
@@ -38,6 +39,7 @@ export class ImportComponent {
     private parsingService: ParsingService,
     private indexedDbService: IndexedDbService,
     private syncService: SyncService,
+    private dashboardStateService: DashboardStateService,
     private router: Router
   ) {}
 
@@ -130,6 +132,9 @@ export class ImportComponent {
       });
 
       await this.indexedDbService.addTransactions(batch.transactions);
+
+      // Update dashboard state with newly parsed transactions
+      this.dashboardStateService.updateTransactions(batch.transactions);
 
       // Get database stats
       const stats = await this.indexedDbService.getDatabaseStats();

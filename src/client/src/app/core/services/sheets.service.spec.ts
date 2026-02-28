@@ -22,7 +22,7 @@ describe('SheetsService', () => {
     id: 'txn_001',
     date: '2025-01-10',
     account: 'HDFC_SAVINGS',
-    description: 'UPI-SWIGGY',
+    narration: 'UPI-SWIGGY',
     amount: 450,
     creditIndicator: '',
     transactionType: 'EXPENSE',

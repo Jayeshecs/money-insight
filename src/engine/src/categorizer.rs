@@ -29,7 +29,7 @@ impl Categorizer {
     
     /// Categorize a transaction
     pub fn categorize(&self, transaction: &mut Transaction) {
-        let description = transaction.description.to_lowercase();
+        let description = transaction.narration.to_lowercase();
         
         // Try user rules first (highest priority)
         for rule in &self.rules {

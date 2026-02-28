@@ -1,39 +1,28 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-
-interface Transaction {
-  date: string;
-  description: string;
-  amount: number;
-  account: string;
-  transaction_type: string;
-}
-
-interface TransactionBatch {
-  source_parser: string;
-  transactions: Transaction[];
-  parse_duration_ms: number;
-}
+import { RouterLink } from '@angular/router';
+import { Transaction } from '../../core/models/data-models';
+import { DashboardStateService } from '../../core/services/dashboard-state.service';
+import { IndexedDbService } from '../../core/services/indexeddb.service';
 
 @Component({
   selector: 'app-transactions',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterLink],
   template: `
     <div class="transactions-container">
       <div class="transactions-header">
         <h1>Parsed Transactions</h1>
-        <p class="parser-info" *ngIf="batch()">
-          Parsed by <strong>{{ batch()!.source_parser }}</strong> 
-          in {{ batch()!.parse_duration_ms }}ms
+        <p class="count-info" *ngIf="transactions().length > 0">
+          Showing <strong>{{ transactions().length }}</strong> transactions
         </p>
       </div>
 
       <div class="transactions-list" data-testid="transaction-list" *ngIf="transactions().length > 0">
         <div class="transaction-card" data-testid="transaction-row" *ngFor="let txn of transactions()">
           <div class="transaction-date">{{ txn.date }}</div>
-          <div class="transaction-description">{{ txn.description }}</div>
-          <div class="transaction-amount" [class.credit]="txn.amount > 0" [class.debit]="txn.amount < 0">
+          <div class="transaction-narration">{{ txn.narration }}</div>
+          <div class="transaction-amount" [class.credit]="txn.creditIndicator === 'Yes'" [class.debit]="txn.creditIndicator !== 'Yes'">
             {{ txn.amount | number:'1.2-2' }}
           </div>
         </div>
@@ -41,7 +30,7 @@ interface TransactionBatch {
 
       <div class="no-data" *ngIf="transactions().length === 0">
         <p>No transactions found. Please upload a statement.</p>
-        <button (click)="goBack()">Upload Statement</button>
+        <a routerLink="/import">Upload Statement</a>
       </div>
     </div>
   `,
@@ -61,7 +50,7 @@ interface TransactionBatch {
         margin-bottom: 0.5rem;
       }
 
-      .parser-info {
+      .count-info {
         color: #6b7280;
         font-size: 0.875rem;
       }
@@ -88,7 +77,7 @@ interface TransactionBatch {
         color: #6b7280;
       }
 
-      .transaction-description {
+      .transaction-narration {
         font-weight: 500;
       }
 
@@ -116,14 +105,14 @@ interface TransactionBatch {
         margin-bottom: 1.5rem;
       }
 
-      button {
+      a {
+        display: inline-block;
         padding: 0.75rem 2rem;
         background-color: #667eea;
         color: white;
-        border: none;
         border-radius: 8px;
         font-weight: 500;
-        cursor: pointer;
+        text-decoration: none;
         transition: background-color 0.2s;
 
         &:hover {
@@ -146,18 +135,18 @@ interface TransactionBatch {
 })
 export class TransactionsComponent implements OnInit {
   transactions = signal<Transaction[]>([]);
-  batch = signal<TransactionBatch | null>(null);
 
-  ngOnInit() {
-    const data = sessionStorage.getItem('parsedTransactions');
-    if (data) {
-      const parsedBatch: TransactionBatch = JSON.parse(data);
-      this.batch.set(parsedBatch);
-      this.transactions.set(parsedBatch.transactions);
+  constructor(
+    private dashboardStateService: DashboardStateService,
+    private indexedDbService: IndexedDbService
+  ) {}
+
+  async ngOnInit(): Promise<void> {
+    if (this.dashboardStateService.transactions().length > 0) {
+      this.transactions.set(this.dashboardStateService.transactions());
+    } else {
+      const txns = await this.indexedDbService.getAllTransactions();
+      this.transactions.set(txns);
     }
-  }
-
-  goBack() {
-    window.location.href = '/import';
   }
 }
