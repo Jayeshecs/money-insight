@@ -1,4 +1,23 @@
 
+## 🎉 Sprint 1 Complete
+
+**Completion Date:** 2026-03-01  
+**All 6 stories delivered and QA-verified.**
+
+| # | Story | Status | Tests |
+|---|-------|--------|-------|
+| 001 | Upload and Parse Bank Statement | ✅ Done | 11/11 E2E |
+| 002 | Auto-Detect and Apply Correct Parser Plugin | ✅ Done | 21/21 Unit + E2E Suite |
+| 003 | Store Parsed Transactions in IndexedDB | ✅ Done | E2E Verified |
+| 004 | Sync Transactions to Google Sheets | ✅ Done | 8/8 E2E + 1 Skipped (manual) |
+| 005 | WASM Engine Emits JSON for Dashboard | ✅ Done | 72/72 Unit + E2E Suite |
+| 006 | Ad Placeholder on Import/Processing Screen | ✅ Done | 15/15 Unit + 7/7 E2E |
+
+**Total defects raised:** 9 across all stories — all resolved ✅  
+**Sprint velocity:** 6/6 stories delivered on time.
+
+---
+
 ## Sprint 1 Status
 
 - [Upload and Parse Bank Statement (WASM Engine)](../stories/story_001_Upload_and_Parse_Bank_Statement.md): **Done** ✅
@@ -29,7 +48,18 @@
   - Angular Changes: `data-models.ts` updated; `DashboardStateService` (signals); `DashboardComponent` with all `data-testid` widgets; `ImportComponent` calls `updateTransactions()`; `TransactionsComponent` uses `narration`
   - Unit Tests: ✅ 72/72 passing (8 new Story 005 tests added) — verified (current sprint)
   - E2E Tests: ✅ Suite created (`tests/e2e/tests/story_005.spec.ts`)
-- [Ad Placeholder on Import/Processing Screen](../stories/story_006_Ad_Placeholder_on_Import_Processing_Screen.md): To Do
+- [Ad Placeholder on Import/Processing Screen](../stories/story_006_Ad_Placeholder_on_Import_Processing_Screen.md): **Done** ✅
+  - Implementation: ✅ Complete (2026-03-01)
+    - `AdPlaceholderComponent` created in `src/client/src/app/shared/components/ad-placeholder/`
+    - 300×250 medium-rectangle format; `data-testid="ad-placeholder"`; `tabindex="-1"` for accessibility
+    - Integrated into `ImportComponent` — shown during `reading`/`parsing`/`saving` stages
+    - Unit tests: ✅ 15/15 passing
+    - `adLoaded.emit()` guarded behind real AdSense SDK detection (DEF-006-003 fix)
+  - E2E Tests: ✅ 7/7 passing — verified by QA (2026-03-01)
+  - **Defects found and fixed:**
+    - DEF-006-001 (High): TC2 dual-timeout+deprecated-API → replaced with `Promise.race` — ✅ Fixed & Verified
+    - DEF-006-002 (Low): Dead `invalidFile` variable in TC4 — ✅ Fixed & Verified
+    - DEF-006-003 (Medium): False `adLoaded` impression in dev/CI — ✅ Fixed & Verified
 
 ---
 
@@ -111,6 +141,22 @@
 - [E2E Test Suite — Story 003](../../tests/e2e/tests/story_003.spec.ts)
 - [E2E Test Suite — Story 004](../../tests/e2e/tests/story_004.spec.ts)
 - [E2E Test Suite — Story 005](../../tests/e2e/tests/story_005.spec.ts)
+- [E2E Test Suite — Story 006](../../tests/e2e/tests/story_006.spec.ts)
+
+#### Story #006 Test Status
+- **Unit Tests:** ✅ 15/15 passing (ad-placeholder.component.spec.ts)
+- **E2E Tests:** ✅ 7/7 passing — verified by QA (2026-03-01)
+  - TC1: Ad placeholder visible during processing ✅
+  - TC2: Ad placeholder dimensions are 300×250 px ✅
+  - TC3: Ad does not block upload controls ✅
+  - TC4: Ad does not obscure success/error messages ✅
+  - TC5: Ad co-visible with progress bar ✅
+  - TC6: Ad does not trap keyboard focus ✅
+  - TC7: Ad behavior consistent after processing completes ✅
+- **Defect Summary (Story #006):**
+  - DEF-006-001 (High): TC2 timeout race — ✅ Fixed & Verified (2026-03-01)
+  - DEF-006-002 (Low): Dead variable in TC4 — ✅ Fixed & Verified (2026-03-01)
+  - DEF-006-003 (Medium): False adLoaded signal in non-prod — ✅ Fixed & Verified (2026-03-01)
 
 ---
 

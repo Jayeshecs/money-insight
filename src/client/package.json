@@ -13,6 +13,7 @@
   "private": true,
   "dependencies": {
     "@angular/animations": "^21.1.4",
+    "@angular/cdk": "^21.2.0",
     "@angular/common": "^21.1.4",
     "@angular/compiler": "^21.1.4",
     "@angular/core": "^21.1.4",
@@ -20,7 +21,9 @@
     "@angular/platform-browser": "^21.1.4",
     "@angular/platform-browser-dynamic": "^21.1.4",
     "@angular/router": "^21.1.4",
+    "chart.js": "^4.5.1",
     "idb": "^8.0.0",
+    "ng2-charts": "^9.0.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
     "zone.js": "~0.16.0"

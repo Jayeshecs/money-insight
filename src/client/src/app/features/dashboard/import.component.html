@@ -79,6 +79,16 @@
           <p class="progress-text">{{ uploadStatus().progress }}%</p>
         </div>
 
+        <!-- Ad placeholder shown during processing AND on success screen (300x250 Medium Rectangle) -->
+        <app-ad-placeholder
+          *ngIf="uploadStatus().stage === 'parsing' || uploadStatus().stage === 'reading' || uploadStatus().stage === 'saving' || uploadStatus().stage === 'complete'"
+          placement="import-processing"
+          format="medium-rectangle"
+          context="credit-cards"
+          (adLoaded)="onProcessingAdLoaded()"
+          (adClicked)="onProcessingAdClicked()">
+        </app-ad-placeholder>
+
         <div class="status-list">
           <div class="status-item" 
                [class.active]="uploadStatus().stage === 'validating'" 

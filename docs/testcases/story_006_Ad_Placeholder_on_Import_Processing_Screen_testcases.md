@@ -125,34 +125,36 @@
 
 ---
 
-### Test Case 7: Ad Placeholder Behavior After Processing Completes
-**Objective:** Verify the defined behavior of the ad placeholder after import processing has completed — either it remains visible in a results context or is hidden.
+### Test Case 7: Ad Placeholder Remains Visible After Processing Completes
+**Objective:** Verify that the ad placeholder remains visible on the post-import results view after processing completes (`stage === 'complete'`). The `*ngIf` on `app-ad-placeholder` now includes `stage === 'complete'`, so the ad must be present and correctly sized on the success screen.
 
 #### Steps
 1. Upload and fully parse a bank statement.
-2. Wait for the success confirmation to appear.
-3. Observe the state of the ad placeholder after processing is complete.
+2. Wait for the success confirmation (`[data-testid="upload-success"]`) to appear.
+3. Assert the ad placeholder (`[data-testid="ad-placeholder"]`) is visible.
+4. Assert the ad placeholder dimensions remain 300×250 px.
+5. Assert the success section is also visible (ad does not cover it).
 
 #### Test Data
 - `story_001_testdata/SA3234_FY2025_20251221.xls`
 
 #### Expected Result
-- The ad placeholder behaves as per story acceptance criteria:
-  - **If it should remain:** The placeholder is still visible in the post-import results view.
-  - **If it should hide:** The placeholder is no longer visible and no empty white box remains.
-- No CSS flickers or layout shift occurs during the transition.
+- The ad placeholder **remains visible** on the post-import results view after processing completes.
+- `element.getBoundingClientRect()` returns `width = 300` and `height = 250`.
+- The success section (`[data-testid="upload-success"]`) is simultaneously visible — the ad does not obscure it.
+- No CSS flickers or layout shift occurs during the `saving` → `complete` stage transition.
 - The placeholder state is consistent across multiple consecutive uploads.
 
 ---
 
 ### Test Case Summary
 
-| TC | Description | Priority | Status |
-|----|-------------|----------|--------|
-| TC1 | Ad placeholder visible during processing | High | Not Executed |
-| TC2 | Ad placeholder dimensions are 300x250 px | High | Not Executed |
-| TC3 | Ad does not block upload controls | High | Not Executed |
-| TC4 | Ad does not block success/error messages | High | Not Executed |
-| TC5 | Ad visible during progress bar display | Medium | Not Executed |
-| TC6 | Ad does not interfere with keyboard nav | Medium | Not Executed |
-| TC7 | Ad behavior after processing completes | Medium | Not Executed |
+| TC | Description | Priority | Status | Executed |
+|----|-------------|----------|--------|----------|
+| TC1 | Ad placeholder visible during processing | High | ✅ Passed | 2026-03-01 |
+| TC2 | Ad placeholder dimensions are 300x250 px | High | ✅ Passed | 2026-03-01 |
+| TC3 | Ad does not block upload controls | High | ✅ Passed | 2026-03-01 |
+| TC4 | Ad does not block success/error messages | High | ✅ Passed | 2026-03-01 |
+| TC5 | Ad visible during progress bar display | Medium | ✅ Passed | 2026-03-01 |
+| TC6 | Ad does not interfere with keyboard nav | Medium | ✅ Passed | 2026-03-01 |
+| TC7 | Ad placeholder remains visible after processing completes | Medium | ✅ Passed | 2026-03-01 |

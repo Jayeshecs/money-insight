@@ -114,4 +114,6 @@ export interface DashboardSummary {
   categoryBreakdown: Record<string, CategoryStats>;
   sourceBreakdown: Record<string, number>;
   period: PeriodSummary | null;
+  monthlySeries?: Record<string, { income: number; expense: number }>;
+  previousNetFlow?: number;
 }

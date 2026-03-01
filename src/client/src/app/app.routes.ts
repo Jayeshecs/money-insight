@@ -12,18 +12,26 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'transactions',
+    loadComponent: () =>
+      import('./features/transactions/transactions-list.component').then(
+        m => m.TransactionsListComponent
+      ),
+  },
+  {
+    path: 'settings',
+    loadComponent: () =>
+      import('./features/settings/settings.component').then(
+        m => m.SettingsComponent
+      ),
+  },
+  {
     path: 'auth/callback',
     loadComponent: () =>
       import('./features/auth/auth-callback/auth-callback.component').then(
         m => m.AuthCallbackComponent
       ),
   },
-  {
-    path: 'transactions',
-    loadComponent: () =>
-      import('./features/dashboard/transactions.component').then(
-        m => m.TransactionsComponent
-      ),
-  },
 ];
+
 

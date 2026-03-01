@@ -6,8 +6,10 @@ import { ParsingService } from '../../core/services/parsing.service';
 import { IndexedDbService } from '../../core/services/indexeddb.service';
 import { SyncService } from '../../core/services/sync.service';
 import { DashboardStateService } from '../../core/services/dashboard-state.service';
+import { RulesService } from '../../core/services/rules.service';
 import { TransactionBatch } from '../../core/models/data-models';
 import { SyncStatusComponent } from '../import/sync-status/sync-status.component';
+import { AdPlaceholderComponent } from '../../shared/components/ad-placeholder/ad-placeholder.component';
 
 interface UploadStatus {
   stage: 'idle' | 'validating' | 'reading' | 'parsing' | 'saving' | 'complete' | 'error';
@@ -19,7 +21,7 @@ interface UploadStatus {
 @Component({
   selector: 'app-import',
   standalone: true,
-  imports: [CommonModule, SyncStatusComponent],
+  imports: [CommonModule, SyncStatusComponent, AdPlaceholderComponent],
   templateUrl: './import.component.html',
   styleUrls: ['./import.component.scss']
 })
@@ -40,6 +42,7 @@ export class ImportComponent {
     private indexedDbService: IndexedDbService,
     private syncService: SyncService,
     private dashboardStateService: DashboardStateService,
+    private rulesService: RulesService,
     private router: Router
   ) {}
 
@@ -131,10 +134,13 @@ export class ImportComponent {
         progress: 75
       });
 
-      await this.indexedDbService.addTransactions(batch.transactions);
+      // Apply rules before saving
+      const withRules = await this.rulesService.applyRulesToTransactions(batch.transactions);
+
+      await this.indexedDbService.addTransactions(withRules);
 
       // Update dashboard state with newly parsed transactions
-      this.dashboardStateService.updateTransactions(batch.transactions);
+      this.dashboardStateService.updateTransactions(withRules);
 
       // Get database stats
       const stats = await this.indexedDbService.getDatabaseStats();
@@ -177,5 +183,15 @@ export class ImportComponent {
       message: 'Ready to upload',
       progress: 0
     });
+  }
+
+  /** Called when the ad slot on the processing screen is filled by AdSense. */
+  onProcessingAdLoaded(): void {
+    // Analytics hook — extend with AdAnalyticsService as needed
+  }
+
+  /** Called when the user clicks the ad on the processing screen. */
+  onProcessingAdClicked(): void {
+    // Analytics hook — extend with AdAnalyticsService as needed
   }
 }
