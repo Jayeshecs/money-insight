@@ -14,7 +14,7 @@ mod detector;
 
 use traits::{PluginRegistry};
 use models::{Transaction, TransactionBatch, DashboardSummary, CategoryStats, PeriodSummary};
-use parsers::{HdfcSavingsParser, HdfcCreditCardParser};
+use parsers::{HdfcSavingsParser, HdfcCreditCardParser, SbiSavingsParser};
 use detector::StatementDetector;
 use categorizer::Categorizer;
 
@@ -41,6 +41,7 @@ impl WasmEngine {
         // Register all available parsers
         registry.register(Box::new(HdfcSavingsParser));
         registry.register(Box::new(HdfcCreditCardParser));
+        registry.register(Box::new(SbiSavingsParser));
         
         // Initialize categorizer with default rules
         let categorizer = Categorizer::new();
@@ -109,7 +110,7 @@ impl WasmEngine {
                 let hints_str = hints.join("; ");
                 
                 return Err(JsValue::from_str(&format!(
-                    "No parser found for this file format. Detection hints: {}. Currently supported: HDFC Savings and Credit Card statements.",
+                    "No parser found for this file format. Detection hints: {}. Currently supported: HDFC Savings, HDFC Credit Card, and SBI Savings statements.",
                     hints_str
                 )));
             }

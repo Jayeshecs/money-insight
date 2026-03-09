@@ -1,16 +1,21 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { Injectable, inject, signal, computed } from '@angular/core';
 import { Transaction, DashboardSummary, CategoryStats } from '../models/data-models';
 import { IndexedDbService } from './indexeddb.service';
+import { ParsingService } from './parsing.service';
 import { get_dashboard_summary } from '../../wasm/pkg/moneyinsight_wasm';
 
-export type PeriodFilter = 'all' | 'last-month' | 'last-3-months';
+export type PeriodFilter = 'all' | 'last-month' | 'last-3-months' | 'custom';
 
 @Injectable({ providedIn: 'root' })
 export class DashboardStateService {
+  private parsingService = inject(ParsingService);
   readonly transactions = signal<Transaction[]>([]);
   readonly dashboardSummary = signal<DashboardSummary | null>(null);
   readonly isLoading = signal(false);
   readonly periodFilter = signal<PeriodFilter>('all');
+  readonly customDateFrom = signal<string | null>(null);
+  readonly customDateTo = signal<string | null>(null);
+  readonly activeCategoryFilter = signal<string | null>(null);
 
   readonly filteredTransactions = computed(() => {
     const txns = this.transactions();
@@ -21,9 +26,52 @@ export class DashboardStateService {
       const start = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
       return txns.filter(t => t.date >= start);
     }
+    if (period === 'custom') {
+      const from = this.customDateFrom();
+      const to = this.customDateTo();
+      // Dates not yet set or invalid range → show all transactions so summary
+      // stays non-null and the date pickers remain visible
+      if (!from || !to || from > to) return txns;
+      return txns.filter(t => t.date >= from! && t.date <= to!);
+    }
     // last-3-months
     const start = new Date(now.getFullYear(), now.getMonth() - 3, 1).toISOString().split('T')[0];
     return txns.filter(t => t.date >= start);
+  });
+
+  /** Monthly net-flow series (last 12 calendar months, zero-filled). C10 compliant. */
+  readonly monthlySeries = computed<{ month: string; income: number; expense: number; net: number }[]>(() => {
+    const txns = this.filteredTransactions();
+    if (txns.length === 0) return [];
+
+    // Aggregate per YYYY-MM key
+    const agg: Record<string, { income: number; expense: number }> = {};
+    for (const t of txns) {
+      const k = t.date.substring(0, 7);
+      if (!agg[k]) agg[k] = { income: 0, expense: 0 };
+      if (t.transactionType === 'INCOME') agg[k].income += t.amount;
+      else if (t.transactionType === 'EXPENSE') agg[k].expense += t.amount;
+    }
+
+    // Determine contiguous month range
+    const keys = Object.keys(agg).sort();
+    const parseYM = (k: string) => { const [y, m] = k.split('-').map(Number); return { y, m }; };
+    const { y: y0, m: m0 } = parseYM(keys[0]);
+    const { y: yN, m: mN } = parseYM(keys[keys.length - 1]);
+    const all: string[] = [];
+    let cy = y0, cm = m0;
+    while (cy < yN || (cy === yN && cm <= mN)) {
+      all.push(`${cy}-${String(cm).padStart(2, '0')}`);
+      cm++;
+      if (cm > 12) { cm = 1; cy++; }
+    }
+
+    // Cap to last 12 months (C3)
+    const capped = all.slice(-12);
+    return capped.map(k => {
+      const d = agg[k] ?? { income: 0, expense: 0 };
+      return { month: k, income: d.income, expense: d.expense, net: d.income - d.expense };
+    });
   });
 
   readonly filteredSummary = computed<DashboardSummary | null>(() => {
@@ -95,8 +143,16 @@ export class DashboardStateService {
 
   constructor(private indexedDbService: IndexedDbService) {}
 
-  filterByPeriod(range: PeriodFilter): void {
+  filterByPeriod(range: PeriodFilter, from?: string, to?: string): void {
+    this.customDateFrom.set(from ?? null);
+    this.customDateTo.set(to ?? null);
     this.periodFilter.set(range);
+    // C6: clear category drill-down when period changes
+    this.activeCategoryFilter.set(null);
+  }
+
+  setActiveCategoryFilter(category: string | null): void {
+    this.activeCategoryFilter.set(category);
   }
 
   updateTransactions(txns: Transaction[]): void {
@@ -118,6 +174,8 @@ export class DashboardStateService {
   async loadFromIndexedDB(): Promise<void> {
     this.isLoading.set(true);
     try {
+      // Ensure WASM is ready before computing get_dashboard_summary
+      await this.parsingService.ensureInitialized();
       const txns = await this.indexedDbService.getAllTransactions();
       this.updateTransactions(txns);
     } catch (err) {
@@ -125,6 +183,11 @@ export class DashboardStateService {
     } finally {
       this.isLoading.set(false);
     }
+  }
+
+  /** Reload alias — triggers a fresh load from IDB so all computed signals refresh. */
+  async reload(): Promise<void> {
+    return this.loadFromIndexedDB();
   }
 
   reset(): void {

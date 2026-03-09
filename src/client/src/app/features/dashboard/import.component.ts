@@ -1,4 +1,5 @@
-import { Component, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { FileUploadService } from '../../core/services/file-upload.service';
@@ -7,6 +8,7 @@ import { IndexedDbService } from '../../core/services/indexeddb.service';
 import { SyncService } from '../../core/services/sync.service';
 import { DashboardStateService } from '../../core/services/dashboard-state.service';
 import { RulesService } from '../../core/services/rules.service';
+import { ConnectivityService } from '../../core/services/connectivity.service';
 import { TransactionBatch } from '../../core/models/data-models';
 import { SyncStatusComponent } from '../import/sync-status/sync-status.component';
 import { AdPlaceholderComponent } from '../../shared/components/ad-placeholder/ad-placeholder.component';
@@ -23,9 +25,14 @@ interface UploadStatus {
   standalone: true,
   imports: [CommonModule, SyncStatusComponent, AdPlaceholderComponent],
   templateUrl: './import.component.html',
-  styleUrls: ['./import.component.scss']
+  styleUrls: ['./import.component.scss'],
 })
 export class ImportComponent {
+  private connectivityService = inject(ConnectivityService);
+
+  /** Signal reflecting current online/offline state (C2, C4). */
+  isOnline = toSignal(this.connectivityService.isOnline$, { initialValue: navigator.onLine });
+
   uploadStatus = signal<UploadStatus>({
     stage: 'idle',
     message: 'Ready to upload',

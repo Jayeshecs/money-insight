@@ -9,7 +9,9 @@ use std::io::Cursor;
 // Import from the crate's internal modules for testing
 use moneyinsight_wasm::parsers::hdfc_savings::HdfcSavingsParser;
 use moneyinsight_wasm::parsers::hdfc_credit::HdfcCreditCardParser;
-use moneyinsight_wasm::traits::BankParser;
+use moneyinsight_wasm::parsers::sbi_savings::SbiSavingsParser;
+use moneyinsight_wasm::models::TransactionType;
+use moneyinsight_wasm::traits::{BankParser, PluginRegistry};
 
 /// Helper function to convert Excel file bytes to TSV format
 /// This replicates the logic from lib.rs for testing purposes
@@ -150,7 +152,7 @@ fn test_parse_actual_hdfc_savings_xls() {
             if !transactions.is_empty() {
                 println!("\nFirst transaction:");
                 println!("  Date: {}", transactions[0].date);
-                println!("  Description: {}", transactions[0].description);
+                println!("  Narration: {}", transactions[0].narration);
                 println!("  Amount: {}", transactions[0].amount);
                 println!("  Category: {} / {:?}", transactions[0].category, transactions[0].sub_category);
                 println!("  Confidence: {:?} ({:?})", transactions[0].confidence, transactions[0].confidence_level);
@@ -158,7 +160,7 @@ fn test_parse_actual_hdfc_savings_xls() {
                 let last_idx = transactions.len() - 1;
                 println!("\nLast transaction:");
                 println!("  Date: {}", transactions[last_idx].date);
-                println!("  Description: {}", transactions[last_idx].description);
+                println!("  Narration: {}", transactions[last_idx].narration);
                 println!("  Amount: {}", transactions[last_idx].amount);
                 println!("  Category: {} / {:?}", transactions[last_idx].category, transactions[last_idx].sub_category);
             }
@@ -233,7 +235,7 @@ fn test_parse_actual_hdfc_credit_xls() {
             if !transactions.is_empty() {
                 println!("\nFirst transaction:");
                 println!("  Date: {}", transactions[0].date);
-                println!("  Description: {}", transactions[0].description);
+                println!("  Narration: {}", transactions[0].narration);
                 println!("  Amount: {}", transactions[0].amount);
                 println!("  Category: {} / {:?}", transactions[0].category, transactions[0].sub_category);
                 println!("  Confidence: {:?} ({:?})", transactions[0].confidence, transactions[0].confidence_level);
@@ -244,4 +246,108 @@ fn test_parse_actual_hdfc_credit_xls() {
             panic!("Failed to parse the credit card test file: {}", e);
         }
     }
+}
+
+// =============================================================================
+// TC-012-011: Full parse of sbi_savings_sample.csv — 6 transactions, correct types
+// =============================================================================
+
+/// TC-012-011: End-to-end parse of the SBI fixture — 6 transactions (Opening Balance skipped).
+#[test]
+fn test_sbi_full_fixture_parse() {
+    let content = include_str!("fixtures/sbi_savings_sample.csv");
+
+    let parser = SbiSavingsParser;
+
+    // identify() must return true for the fixture
+    assert!(
+        parser.identify(content),
+        "SbiSavingsParser::identify() must return true for the fixture"
+    );
+
+    // parse() must succeed
+    let txns = parser.parse(content).expect("SBI fixture parse must succeed");
+
+    // Opening Balance row silently skipped → 6 transactions
+    assert_eq!(
+        txns.len(),
+        6,
+        "Expected 6 transactions (Opening Balance row skipped); got {}",
+        txns.len()
+    );
+
+    // Count EXPENSE vs INCOME
+    let expense_count = txns
+        .iter()
+        .filter(|t| t.transaction_type == TransactionType::Expense)
+        .count();
+    let income_count = txns
+        .iter()
+        .filter(|t| t.transaction_type == TransactionType::Income)
+        .count();
+
+    assert_eq!(expense_count, 4, "Expected 4 EXPENSE transactions");
+    assert_eq!(income_count, 2, "Expected 2 INCOME transactions");
+
+    // All transactions carry the SBI_SAVINGS account tag (C8)
+    for txn in &txns {
+        assert_eq!(
+            txn.account, "SBI_SAVINGS",
+            "All transactions must have account = 'SBI_SAVINGS'"
+        );
+    }
+
+    // First row: IMPS debit, 350.00
+    let first = &txns[0];
+    assert_eq!(first.date, "2026-03-07");
+    assert_eq!(first.narration, "IMPS/416000123456/UPI-ZOMATO");
+    assert!((first.amount - 350.0).abs() < 0.001, "First txn amount must be 350.00");
+    assert_eq!(first.transaction_type, TransactionType::Expense);
+
+    println!("\n✅ SBI fixture parsed: {} transactions ({} EXPENSE, {} INCOME)",
+        txns.len(), expense_count, income_count);
+}
+
+// =============================================================================
+// TC-012-008: auto_detect_parser() regression — SBI, HDFC Savings, unknown
+// =============================================================================
+
+/// TC-012-008: auto_detect via PluginRegistry:
+///   * SBI CSV     → "SBI Savings"
+///   * HDFC header → "HDFC Savings Account"
+///   * unknown     → None
+#[test]
+fn test_auto_detect_sbi_hdfc_and_unknown() {
+    let mut registry = PluginRegistry::new();
+    registry.register(Box::new(HdfcSavingsParser));
+    registry.register(Box::new(HdfcCreditCardParser));
+    registry.register(Box::new(SbiSavingsParser));
+
+    // SBI CSV → SbiSavingsParser
+    let sbi_csv = include_str!("fixtures/sbi_savings_sample.csv");
+    let detected = registry.auto_detect(sbi_csv);
+    assert!(detected.is_some(), "Should detect a parser for SBI CSV");
+    assert_eq!(
+        detected.unwrap().name(),
+        "SBI Savings",
+        "Auto-detect must select SbiSavingsParser for SBI CSV"
+    );
+
+    // HDFC Savings header → HdfcSavingsParser  (no regression)
+    let hdfc_csv = "HDFC Bank\nDate\tNarration\tChq./Ref.No.\tValue Dt\tWithdrawal Amt.\tDeposit Amt.\tClosing Balance";
+    let hdfc_detected = registry.auto_detect(hdfc_csv);
+    assert!(hdfc_detected.is_some(), "Should detect a parser for HDFC Savings");
+    assert_eq!(
+        hdfc_detected.unwrap().name(),
+        "HDFC Savings Account",
+        "Auto-detect must select HdfcSavingsParser for HDFC Savings (no regression)"
+    );
+
+    // Unknown CSV → no parser found
+    let unknown = "Name,Amount,Date\nAlice,100,2026-01-01";
+    let unknown_detected = registry.auto_detect(unknown);
+    assert!(
+        unknown_detected.is_none(),
+        "Auto-detect must return None for an unknown CSV format"
+    );
 }

@@ -161,7 +161,59 @@ export class SheetsService {
     return new Set(rows.map((row: string[]) => row[0]).filter(Boolean));
   }
 
-  // ─── Rules Sync (designed for future story; wired into syncEntry routing) ────
+  // ─── Rules Sync (Story 013 — ML Feedback Loop) ──────────────────────────────
+
+  /**
+   * Clear-and-rewrite strategy: clears the entire Rules tab (except header row),
+   * then appends all provided rules as new rows using the 10-column schema:
+   * ID | PatternType | Pattern | Category | SubCategory | Priority | Active |
+   * Source | CreatedAt | LastModified
+   *
+   * @param rules - Active rules to write (caller must filter to only active rules)
+   */
+  async syncRules(rules: Rule[]): Promise<void> {
+    const sheetId = await this.ensureSheetExists();
+    const token = await this.auth.getToken();
+    const now = new Date().toISOString();
+
+    // Step 1: Clear all data rows (keep frozen header row 1)
+    await firstValueFrom(
+      this.http.post(
+        `${this.SHEETS_API}/${sheetId}/values/Rules!A2:J:clear`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
+    );
+
+    if (rules.length === 0) return;
+
+    // Step 2: Append all rules with LastModified = now
+    const values = rules.map(r => [
+      r.id,                                              // A: ID
+      r.patternType,                                     // B: PatternType
+      r.pattern,                                         // C: Pattern
+      r.category,                                        // D: Category
+      r.subCategory ?? '',                               // E: SubCategory
+      r.priority,                                        // F: Priority
+      r.active ? 'TRUE' : 'FALSE',                       // G: Active
+      r.source,                                          // H: Source
+      new Date(r.createdAt).toISOString(),               // I: CreatedAt
+      now,                                               // J: LastModified (timestamp of sync)
+    ]);
+
+    for (let i = 0; i < values.length; i += this.BATCH_SIZE) {
+      const batch = values.slice(i, i + this.BATCH_SIZE);
+      await firstValueFrom(
+        this.http.post(
+          `${this.SHEETS_API}/${sheetId}/values/Rules!A2:J:append?valueInputOption=USER_ENTERED`,
+          { values: batch },
+          { headers: { Authorization: `Bearer ${token}` } }
+        )
+      );
+    }
+  }
+
+  // ─── Rules Append (legacy; designed for incremental push) ───────────────────
 
   /**
    * Pushes unsynced rules to the Rules sheet (columns A:J).

@@ -12,6 +12,13 @@
     </div>
 
     <div class="modal-body">
+      <!-- Offline guard — shown when browser has no network connection (AC5, C4, C5) -->
+      @if (!isOnline()) {
+        <div data-testid="offline-import-error" class="offline-import-error" role="alert">
+          You are offline. Uploads are not available.
+        </div>
+      }
+
       <!-- File Upload Section -->
       <div class="upload-section" *ngIf="uploadStatus().stage === 'idle'">
         <div 
@@ -30,13 +37,14 @@
             </svg>
             <p class="primary-text">Drag & drop your statement here</p>
             <p class="secondary-text">or</p>
-            <label for="file-input" class="upload-btn">Browse Files</label>
+            <label for="file-input" class="upload-btn" [attr.aria-disabled]="!isOnline()" [class.btn-disabled]="!isOnline()">Browse Files</label>
             <input 
               id="file-input" 
               type="file" 
               data-testid="file-input"
               accept=".xlsx,.xls,.csv"
               (change)="onFileSelected($event)"
+              [disabled]="!isOnline()"
               hidden>
           </div>
           
@@ -157,7 +165,7 @@
         
         <!-- Transaction List -->
         <div class="transaction-preview" *ngIf="parsedBatch()" data-testid="transaction-list">
-          <h4>Parsed Transactions ({{ parsedBatch()!.transactions.length }})</h4>
+          <h4>Parsed Transactions (<span data-testid="transaction-count">{{ parsedBatch()!.transactions.length }}</span>)</h4>
           <div class="transaction-table">
             <div class="transaction-row transaction-header">
               <span class="col-date">Date</span>

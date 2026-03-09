@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal, computed } from '@angular/core';
+import { Component, OnInit, inject, signal, computed, effect } from '@angular/core';
 import { CommonModule, CurrencyPipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -8,6 +8,7 @@ import { DashboardStateService } from '../../core/services/dashboard-state.servi
 import { RulesService } from '../../core/services/rules.service';
 import { ToastService } from '../../shared/services/toast.service';
 import { ToastComponent } from '../../shared/components/toast/toast.component';
+import { AdPlaceholderComponent } from '../../shared/components/ad-placeholder/ad-placeholder.component';
 
 const CATEGORIES = [
   'All',
@@ -20,7 +21,7 @@ const PAGE_SIZE = 20;
 @Component({
   selector: 'app-transactions-list',
   standalone: true,
-  imports: [CommonModule, RouterLink, CurrencyPipe, FormsModule, ToastComponent],
+  imports: [CommonModule, RouterLink, CurrencyPipe, FormsModule, ToastComponent, AdPlaceholderComponent],
   template: `
     <div class="txn-layout">
 
@@ -102,6 +103,14 @@ const PAGE_SIZE = 20;
                 </td>
                 <td data-testid="txn-confidence">{{ confidenceEmoji(txn.confidenceLevel) }}</td>
               </tr>
+              @if (pagedTransactions.length === PAGE_SIZE) {
+                <tr data-testid="ad-row">
+                  <td colspan="5">
+                    <span data-testid="ad-sponsored-label">Sponsored</span>
+                    <app-ad-placeholder format="native" placement="transactions-in-feed"></app-ad-placeholder>
+                  </td>
+                </tr>
+              }
             </tbody>
           </table>
         </div>
@@ -129,6 +138,12 @@ const PAGE_SIZE = 20;
               </select>
             </div>
           </div>
+          @if (pagedTransactions.length === PAGE_SIZE) {
+            <div data-testid="ad-card">
+              <span data-testid="ad-sponsored-label">Sponsored</span>
+              <app-ad-placeholder format="native" placement="transactions-in-feed"></app-ad-placeholder>
+            </div>
+          }
         </div>
 
         <!-- Pagination -->
@@ -411,6 +426,7 @@ export class TransactionsListComponent implements OnInit {
 
   readonly categories = CATEGORIES;
   readonly editableCategories = CATEGORIES.filter(c => c !== 'All');
+  protected readonly PAGE_SIZE = PAGE_SIZE;
 
   allTransactions = signal<Transaction[]>([]);
 
@@ -420,6 +436,20 @@ export class TransactionsListComponent implements OnInit {
   dateTo = '';
   searchText = '';
   currentPage = 0;
+
+  constructor() {
+    // C11: Pre-fill category dropdown when dashboard drill-down sets a filter
+    effect(() => {
+      const cat = this.dashboardState.activeCategoryFilter();
+      if (cat !== null && this.categories.includes(cat)) {
+        this.selectedCategory = cat;
+        this.currentPage = 0;
+      } else if (cat === null) {
+        // Filter was cleared — reset to 'All' only if it was previously set by the signal
+        // (don't reset if user manually chose a category)
+      }
+    });
+  }
 
   get filteredTransactions(): Transaction[] {
     let txns = [...this.allTransactions()].sort((a, b) => b.date.localeCompare(a.date));

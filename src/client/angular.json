@@ -39,6 +39,16 @@
                 "glob": "404.html",
                 "input": ".",
                 "output": "."
+              },
+              {
+                "glob": "manifest.webmanifest",
+                "input": "public",
+                "output": "/"
+              },
+              {
+                "glob": "icons/**",
+                "input": "public",
+                "output": "/"
               }
             ],
             "styles": [
@@ -60,7 +70,8 @@
                   "maximumError": "10kB"
                 }
               ],
-              "outputHashing": "all"
+              "outputHashing": "all",
+              "serviceWorker": "ngsw-config.json"
             },
             "development": {
               "optimization": false,

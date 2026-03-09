@@ -1,16 +1,24 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { Router, RouterOutlet, NavigationEnd } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { filter } from 'rxjs/operators';
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { BottomNavComponent } from './shared/components/bottom-nav/bottom-nav.component';
 import { AdPlaceholderComponent } from './shared/components/ad-placeholder/ad-placeholder.component';
+import { ConnectivityService } from './core/services/connectivity.service';
 
 @Component({
   selector: 'app-root',
   standalone: true,
   imports: [RouterOutlet, CommonModule, BottomNavComponent, AdPlaceholderComponent],
   template: `
+    @if (!isOnline()) {
+      <div data-testid="offline-banner" class="offline-banner" role="alert" aria-live="polite">
+        You are offline. Some features may be unavailable.
+      </div>
+    }
+
     <div class="app-container">
       <router-outlet></router-outlet>
     </div>
@@ -32,6 +40,18 @@ import { AdPlaceholderComponent } from './shared/components/ad-placeholder/ad-pl
     </div>
   `,
   styles: [`
+    .offline-banner {
+      background: #b71c1c;
+      color: #ffffff;
+      text-align: center;
+      padding: 0.5rem 1rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+
     .app-container {
       min-height: 100vh;
       width: 100%;
@@ -71,7 +91,9 @@ export class AppComponent implements OnInit {
 
   private router = inject(Router);
   private breakpointObserver = inject(BreakpointObserver);
+  private connectivityService = inject(ConnectivityService);
 
+  isOnline = toSignal(this.connectivityService.isOnline$, { initialValue: navigator.onLine });
   isMobile = signal(false);
   adDismissed = signal(false);
   private dismissCount = signal(parseInt(sessionStorage.getItem('adDismissCount') ?? '0', 10));

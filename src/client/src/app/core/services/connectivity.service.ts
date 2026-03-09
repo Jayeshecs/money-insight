@@ -15,6 +15,9 @@ import { debounceTime, distinctUntilChanged, filter, pairwise } from 'rxjs/opera
 export class ConnectivityService {
   private readonly online$ = new BehaviorSubject<boolean>(navigator.onLine);
 
+  /** Public observable of the current online state — use with `toSignal()` in components. */
+  readonly isOnline$: Observable<boolean> = this.online$.asObservable();
+
   constructor() {
     window.addEventListener('online', () => this.online$.next(true));
     window.addEventListener('offline', () => this.online$.next(false));

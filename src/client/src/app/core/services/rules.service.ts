@@ -42,6 +42,42 @@ export class RulesService {
     return this.idb.getActiveRules();
   }
 
+  /** Alias for getRules() — returns only active rules from IDB. */
+  async getActiveRules(): Promise<Rule[]> {
+    return this.idb.getActiveRules();
+  }
+
+  /**
+   * Re-applies the current active rule set to all IDB transactions where
+   * `source !== 'USER_FEEDBACK'` (i.e., AI-assigned categories only).
+   * Writes back ONLY changed records to IDB.
+   * Does NOT change the `synced` flag — no secondary Sheets sync is triggered.
+   *
+   * @returns count of transactions whose category was updated
+   */
+  async reApplyRulesToAllTransactions(): Promise<number> {
+    const allTxns = await this.idb.getAllTransactions();
+    // Only re-apply to transactions not manually corrected by the user
+    const eligible = allTxns.filter(t => t.source !== 'USER_FEEDBACK');
+    if (eligible.length === 0) return 0;
+
+    const ruleApplied = await this.applyRulesToTransactions(eligible);
+    let count = 0;
+    const now = new Date().toISOString();
+
+    for (let i = 0; i < eligible.length; i++) {
+      if (eligible[i].category !== ruleApplied[i].category) {
+        // Write back with updated category and lastModified; synced flag unchanged
+        await this.idb.updateTransaction({
+          ...ruleApplied[i],
+          lastModified: now,
+        });
+        count++;
+      }
+    }
+    return count;
+  }
+
   async applyRulesToTransactions(txns: Transaction[]): Promise<Transaction[]> {
     const rules = await this.getRules();
     if (rules.length === 0) return txns;

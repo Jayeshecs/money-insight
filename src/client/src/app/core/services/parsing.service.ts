@@ -31,6 +31,13 @@ export class ParsingService {
     }
   }
 
+  /** Awaits WASM initialisation. Safe to call multiple times (resolves immediately once loaded). */
+  async ensureInitialized(): Promise<void> {
+    if (this.initPromise) {
+      await this.initPromise;
+    }
+  }
+
   parseFile(fileData: ArrayBuffer, fileName: string): Observable<TransactionBatch> {
     return from(this.parseFileAsync(fileData, fileName));
   }
