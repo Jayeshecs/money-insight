@@ -1,6 +1,6 @@
 ## Story: Sync & Train — ML Feedback Loop
 
-**Status:** To Do
+**Status:** On Hold
 
 **As a** user who has corrected AI-assigned transaction categories  
 **I want** a "Sync & Train" action that pushes my corrections to Google Sheets and re-applies updated rules to all transactions  

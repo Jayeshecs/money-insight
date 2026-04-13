@@ -1,5 +1,10 @@
 # UI Wireframes and UX Specifications
 
+> **Deprecated — superseded by [`ux_design_2.0.md`](ux_design_2.0.md) (2026-04-13).**  
+> This document remains for historical reference only. The Dashboard section (§ "Screen: The Dashboard") is replaced by the v2.0 four-section full-width layout. The Import & Processing and Transaction Review screens are unchanged and re-documented in `ux_design_2.0.md`.
+
+---
+
 Three critical views viz., 1. **Dashboard (Home)**, 2. **Upload & Processing (The Engine)**, and 3. **Transaction Review (The Data)**. Each section includes layouts for Desktop and Mobile, specifically highlighting **AdSense Placements** (\[AD\]) to maximize revenue keeping best user experience.
 
 ### Global Navigation & Layout

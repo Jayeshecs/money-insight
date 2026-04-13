@@ -93,6 +93,29 @@ export interface Setting {
   updatedAt: string;
 }
 
+// ==================== Dashboard v2.0 Models ====================
+
+export type Granularity = 'yearly' | 'quarterly' | 'monthly';
+
+export interface OverallSummary {
+  income: number;
+  expense: number;
+  investment: number;
+  transfer: number;
+}
+
+export interface CategoryTree {
+  category: string;
+  total: number;
+  subCategories: { name: string; total: number }[];
+}
+
+export interface WidgetSelection {
+  type: TransactionType;
+  category: string;
+  subCategory?: string;
+}
+
 // ==================== Dashboard Summary Models ====================
 
 export interface CategoryStats {

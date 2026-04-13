@@ -1,5 +1,6 @@
-import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, ChangeDetectionStrategy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { UserPreferencesService } from '../../../core/services/user-preferences.service';
 
 export type AdFormat = 'banner' | 'medium-rectangle' | 'skyscraper' | 'native' | 'mobile-banner';
 
@@ -38,6 +39,7 @@ const AD_DIMENSIONS: Record<AdFormat, AdDimensions> = {
   imports: [CommonModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
+    @if (prefs.showAds()) {
     <div
       class="ad-container ad-{{ format }}"
       [attr.data-testid]="'ad-placeholder'"
@@ -61,7 +63,9 @@ const AD_DIMENSIONS: Record<AdFormat, AdDimensions> = {
         </div>
       </div>
     </div>
+    }
   `,
+  host: { '[style.display]': `prefs.showAds() ? 'block' : 'none'` },
   styles: [`
     :host {
       display: block;
@@ -124,6 +128,7 @@ const AD_DIMENSIONS: Record<AdFormat, AdDimensions> = {
   `]
 })
 export class AdPlaceholderComponent implements OnInit, OnDestroy {
+  readonly prefs = inject(UserPreferencesService);
   /** Unique identifier for this placement (maps to an AdSense slot) */
   @Input({ required: true }) placement!: string;
 

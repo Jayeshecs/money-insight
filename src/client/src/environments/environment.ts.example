@@ -6,4 +6,8 @@ export const environment = {
   production: false,
   googleClientId: 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com',
   googleClientSecret: 'YOUR_GOOGLE_CLIENT_SECRET', // Google Cloud Console → OAuth 2.0 Client Secret
+  adSlots: {
+    'dashboard-summary-banner': '',
+    'dashboard-widgets-banner': '',
+  },
 };

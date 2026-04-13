@@ -1,6 +1,6 @@
 ## Story: SBI Savings Bank Parser Plugin
 
-**Status:** To Do
+**Status:** On Hold
 
 **As a** SBI Savings Bank account holder  
 **I want** MoneyInsight to recognise and parse my SBI account statement  

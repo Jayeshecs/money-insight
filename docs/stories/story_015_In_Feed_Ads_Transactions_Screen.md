@@ -1,6 +1,6 @@
 ## Story: In-Feed Ad Placements in Transaction Review Screen
 
-**Status:** To Do
+**Status:** On Hold
 
 **As a** product owner maximising ad revenue  
 **I want** strategically placed in-feed ads in the Transactions Review screen  

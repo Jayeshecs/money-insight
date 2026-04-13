@@ -1,6 +1,6 @@
 ## Story: Progressive Web App (PWA) — Installable & Offline-Ready
 
-**Status:** To Do
+**Status:** On Hold
 
 **As a** user on a mobile device  
 **I want** MoneyInsight to be installable as a home-screen app and work offline for browsing my transaction history  

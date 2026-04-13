@@ -1,6 +1,6 @@
 ## Story: Advanced Analytics — Custom Period, Trends, and Category Drill-Down
 
-**Status:** To Do
+**Status:** On Hold
 
 **As a** user reviewing my financial history  
 **I want** a custom date range picker, month-over-month trend charts, and category drill-down  

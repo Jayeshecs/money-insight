@@ -16,17 +16,22 @@ import { FabButtonComponent } from '../../shared/components/fab-button/fab-butto
 import { RulesService } from '../../core/services/rules.service';
 import { SheetsService } from '../../core/services/sheets.service';
 import { AuthService } from '../../core/services/auth.service';
-import { Transaction } from '../../core/models/data-models';
+import { Transaction, WidgetSelection } from '../../core/models/data-models';
+import { GranularityBarComponent } from './granularity-bar/granularity-bar.component';
+import { OverallSummaryBarComponent } from './overall-summary-bar/overall-summary-bar.component';
+import { AnalyticalWidgetComponent } from './widgets/analytical-widget/analytical-widget.component';
+import { TransactionsPanelComponent } from './transactions-panel/transactions-panel.component';
+import { AppHeaderComponent } from '../../shared/components/app-header/app-header.component';
 
 Chart.register(CategoryScale, LinearScale, BarController, BarElement, Tooltip, Legend, DoughnutController, ArcElement, Title, LineController, LineElement, PointElement, Filler);
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterLink, CurrencyPipe, DecimalPipe, FormsModule, BaseChartDirective, AdPlaceholderComponent, NetFlowTrendChartComponent, FabButtonComponent],
+  imports: [CommonModule, RouterLink, CurrencyPipe, DecimalPipe, FormsModule, BaseChartDirective, AdPlaceholderComponent, NetFlowTrendChartComponent, FabButtonComponent, GranularityBarComponent, OverallSummaryBarComponent, AnalyticalWidgetComponent, TransactionsPanelComponent, AppHeaderComponent],
   template: `
     <!-- Loading skeleton -->
-    <div *ngIf="isLoading()" class="skeleton-container" data-testid="dashboard-skeleton">
+    <div *ngIf="isLoading()" class="skeleton-container pt-3 px-3" data-testid="dashboard-skeleton">
       <div class="skeleton-title"></div>
       <div class="skeleton-widgets">
         <div class="skeleton-widget" *ngFor="let i of [1,2,3,4]"></div>
@@ -34,25 +39,20 @@ Chart.register(CategoryScale, LinearScale, BarController, BarElement, Tooltip, L
       <div class="skeleton-chart"></div>
     </div>
 
-    <!-- Main layout -->
-    <div *ngIf="!isLoading()" class="dashboard-layout">
+    <!-- Main layout: full-width top-nav + content -->
+    <div *ngIf="!isLoading()">
 
-      <!-- Left: sidebar nav -->
-      <nav class="sidebar-nav" data-testid="sidebar-nav" aria-label="Main navigation">
-        <div class="nav-brand">💰 MoneyInsight</div>
-        <a routerLink="/dashboard" class="nav-link active">📊 Dashboard</a>
-        <a routerLink="/transactions" class="nav-link">📋 Transactions</a>
-        <a routerLink="/import" class="nav-link">⬆️ Import</a>
-        <a routerLink="/settings" class="nav-link">⚙️ Settings</a>
-      </nav>
+      <!-- Bootstrap navbar (Story 022) -->
+      <app-header data-testid="navbar"></app-header>
 
-      <!-- Center: main content -->
-      <main class="main-content">
-        <!-- Dashboard header with title + Sync & Train button (desktop) -->
-        <div class="dashboard-header">
-          <h1 class="dashboard-title">Dashboard</h1>
+      <!-- Main content container -->
+      <main class="container-fluid px-3 py-3" data-testid="dashboard-container">
+
+        <!-- Dashboard title row + Sync & Train (desktop) -->
+        <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+          <h1 class="h4 mb-0 fw-bold text-dark">Dashboard</h1>
           <button
-            class="btn-primary sync-train-btn"
+            class="btn btn-primary btn-sm sync-train-btn"
             data-testid="sync-train-btn"
             [disabled]="syncing() || null"
             (click)="syncAndTrain()">
@@ -62,7 +62,7 @@ Chart.register(CategoryScale, LinearScale, BarController, BarElement, Tooltip, L
 
         <!-- Auth error (shown when unauthenticated user attempts sync) -->
         @if (showAuthError()) {
-          <div class="auth-error-banner" data-testid="auth-error" role="alert">
+          <div class="auth-error-banner mb-2" data-testid="auth-error" role="alert">
             ⚠️ Please sign in with Google to sync rules.
             <button class="dismiss-btn" (click)="showAuthError.set(false)">✕</button>
           </div>
@@ -71,7 +71,7 @@ Chart.register(CategoryScale, LinearScale, BarController, BarElement, Tooltip, L
         <!-- Sync & Train status toast -->
         @if (syncStatus()) {
           <div
-            class="sync-status-toast"
+            class="sync-status-toast mb-2"
             data-testid="sync-train-status"
             [class.toast-success]="syncStatus()!.startsWith('success')"
             [class.toast-error]="syncStatus() === 'error'"
@@ -116,48 +116,78 @@ Chart.register(CategoryScale, LinearScale, BarController, BarElement, Tooltip, L
         <!-- Dashboard content (only when transactions are loaded) -->
         <ng-container *ngIf="transactions().length > 0">
 
-          <!-- Period filter -->
-          <div class="period-filter" data-testid="period-filter">
-            <button
-              data-testid="period-btn-all"
-              [class.active]="periodFilter() === 'all'"
-              (click)="setFilter('all')">All Time</button>
-            <button
-              data-testid="period-btn-last-month"
-              [class.active]="periodFilter() === 'last-month'"
-              (click)="setFilter('last-month')">Last Month</button>
-            <button
-              data-testid="period-btn-last-3-months"
-              [class.active]="periodFilter() === 'last-3-months'"
-              (click)="setFilter('last-3-months')">Last 3 Months</button>
-            <button
-              data-testid="period-btn-custom"
-              [class.active]="periodFilter() === 'custom'"
-              (click)="setFilter('custom')">Custom</button>
+          <!-- Section 1: Granularity Bar (v2.0) -->
+          <app-granularity-bar></app-granularity-bar>
+
+          <!-- Section 2: Overall Summary Bar (v2.0) -->
+          <app-overall-summary-bar></app-overall-summary-bar>
+
+          <!-- Ad: between Summary and Widgets -->
+          <div class="ad-section-divider" aria-hidden="true">
+            <app-ad-placeholder
+              data-testid="ad-placeholder"
+              data-placement="dashboard-summary-banner"
+              format="banner"
+              placement="dashboard-summary-banner"
+              role="complementary"
+              tabindex="-1">
+            </app-ad-placeholder>
           </div>
 
-          <!-- Custom date range pickers -->
-          @if (periodFilter() === 'custom') {
-            <div class="custom-date-range">
-              <label class="date-label">From:</label>
-              <input type="date"
-                     data-testid="date-from-picker"
-                     class="date-input"
-                     [(ngModel)]="customFrom"
-                     (ngModelChange)="onCustomDateChange()">
-              <label class="date-label">To:</label>
-              <input type="date"
-                     data-testid="date-to-picker"
-                     class="date-input"
-                     [(ngModel)]="customTo"
-                     (ngModelChange)="onCustomDateChange()">
+          <!-- Section 3: Analytical Tree-Table Widgets (v2.0) — Bootstrap responsive grid -->
+          <div class="row g-3" data-testid="widgets-grid">
+            <div class="col-12 col-sm-6 col-xl-3">
+              <app-analytical-widget
+                type="expense"
+                [data]="expenseTree()"
+                [isAutoOn]="activeAutoWidget() === 'expense'"
+                (autoToggled)="onAutoToggle('expense', $event)"
+                (rowSelected)="onWidgetRowSelected($event)">
+              </app-analytical-widget>
             </div>
-            @if (dateRangeError) {
-              <div data-testid="date-range-error" class="date-range-error">
-                ⚠️ "From" date must be on or before "To" date.
-              </div>
-            }
-          }
+            <div class="col-12 col-sm-6 col-xl-3">
+              <app-analytical-widget
+                type="investment"
+                [data]="investmentTree()"
+                [isAutoOn]="activeAutoWidget() === 'investment'"
+                (autoToggled)="onAutoToggle('investment', $event)"
+                (rowSelected)="onWidgetRowSelected($event)">
+              </app-analytical-widget>
+            </div>
+            <div class="col-12 col-sm-6 col-xl-3">
+              <app-analytical-widget
+                type="income"
+                [data]="incomeTree()"
+                [isAutoOn]="activeAutoWidget() === 'income'"
+                (autoToggled)="onAutoToggle('income', $event)"
+                (rowSelected)="onWidgetRowSelected($event)">
+              </app-analytical-widget>
+            </div>
+            <div class="col-12 col-sm-6 col-xl-3">
+              <app-analytical-widget
+                type="transfer"
+                [data]="transferTree()"
+                [isAutoOn]="activeAutoWidget() === 'transfer'"
+                (autoToggled)="onAutoToggle('transfer', $event)"
+                (rowSelected)="onWidgetRowSelected($event)">
+              </app-analytical-widget>
+            </div>
+          </div>
+
+          <!-- Ad: between Widgets and Transactions Panel -->
+          <div class="ad-section-divider" aria-hidden="true">
+            <app-ad-placeholder
+              data-testid="ad-placeholder"
+              data-placement="dashboard-widgets-banner"
+              format="banner"
+              placement="dashboard-widgets-banner"
+              role="complementary"
+              tabindex="-1">
+            </app-ad-placeholder>
+          </div>
+
+          <!-- Section 4: Transactions Panel -->
+          <app-transactions-panel></app-transactions-panel>
 
           <!-- Category filter indicator -->
           @if (activeCategoryFilter()) {
@@ -241,15 +271,6 @@ Chart.register(CategoryScale, LinearScale, BarController, BarElement, Tooltip, L
             <app-net-flow-trend-chart></app-net-flow-trend-chart>
           </div>
 
-          <!-- Dashboard banner ad (728×90) — visible ≥768px -->
-          <div class="dashboard-banner-ad-wrapper">
-            <app-ad-placeholder
-              format="banner"
-              placement="dashboard-banner"
-              context="banking">
-            </app-ad-placeholder>
-          </div>
-
           <!-- Recent Transactions -->
           <div class="recent-transactions-section">
             <h3 class="section-title">Recent Transactions</h3>
@@ -280,112 +301,16 @@ Chart.register(CategoryScale, LinearScale, BarController, BarElement, Tooltip, L
           </ng-container><!-- /summary() -->
 
         </ng-container><!-- /transactions().length > 0 -->
-      </main>
 
-      <!-- Right: ad sidebar (160×600 skyscraper, desktop only ≥1024px) -->
-      <aside class="ad-sidebar">
-        <app-ad-placeholder
-          format="skyscraper"
-          placement="sidebar-skyscraper"
-          context="investments">
-        </app-ad-placeholder>
-      </aside>
+      </main>
 
     </div>
   `,
   styles: [`
     /* ── Layout ─────────────────────────────────────────── */
-    .dashboard-layout {
-      display: grid;
-      grid-template-columns: 200px 1fr 180px;
-      min-height: 100vh;
-    }
-
-    @media (max-width: 1023px) {
-      .dashboard-layout {
-        grid-template-columns: 1fr;
-      }
-      .ad-sidebar { display: none; }
-      .sidebar-nav { display: none; }
-    }
-
-    /* ── Sidebar Nav ─────────────────────────────────────── */
-    .sidebar-nav {
-      background: #1e293b;
-      padding: 1.5rem 0;
-      display: flex;
-      flex-direction: column;
-      gap: 0.25rem;
-      position: sticky;
-      top: 0;
-      height: 100vh;
-      overflow-y: auto;
-    }
-
-    .nav-brand {
-      font-weight: 700;
-      color: white;
-      padding: 0.75rem 1.25rem 1.25rem;
-      font-size: 1rem;
-      border-bottom: 1px solid #334155;
-      margin-bottom: 0.5rem;
-    }
-
-    .nav-link {
-      display: block;
-      padding: 0.75rem 1.25rem;
-      color: #94a3b8;
-      text-decoration: none;
-      font-size: 0.9rem;
-      border-radius: 0;
-      transition: background 0.15s, color 0.15s;
-
-      &:hover, &.active {
-        background: #334155;
-        color: white;
-      }
-    }
-
-    /* ── Main Content ────────────────────────────────────── */
-    .main-content {
-      padding: 2rem;
-      overflow: hidden;
-    }
-
-    /* ── Dashboard header ─────────────────────────────────── */
-    .dashboard-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 1.5rem;
-      flex-wrap: wrap;
-      gap: 0.75rem;
-    }
-
-    .dashboard-title {
-      font-size: 1.75rem;
-      font-weight: 700;
-      color: #1f2937;
-      margin-bottom: 0;
-    }
+    /* Full-width layout — sidebar removed in Story 022. Bootstrap container-fluid handles padding. */
 
     /* ── Sync & Train desktop button ─────────────────────── */
-    .btn-primary {
-      padding: 0.6rem 1.25rem;
-      background: #667eea;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      font-weight: 600;
-      font-size: 0.875rem;
-      cursor: pointer;
-      transition: background 0.15s, opacity 0.15s;
-      white-space: nowrap;
-    }
-
-    .btn-primary:hover:not(:disabled) { background: #5568d3; }
-    .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
-
     /* Hide desktop sync button on mobile (FAB takes over) */
     @media (max-width: 767px) {
       .sync-train-btn { display: none; }
@@ -396,7 +321,6 @@ Chart.register(CategoryScale, LinearScale, BarController, BarElement, Tooltip, L
       display: flex;
       align-items: center;
       gap: 0.5rem;
-      margin-bottom: 1rem;
       padding: 0.75rem 1rem;
       border-radius: 8px;
       font-size: 0.9rem;
@@ -427,7 +351,6 @@ Chart.register(CategoryScale, LinearScale, BarController, BarElement, Tooltip, L
       display: flex;
       align-items: center;
       gap: 0.5rem;
-      margin-bottom: 1rem;
       padding: 0.75rem 1rem;
       border-radius: 8px;
       background: #fffbeb;
@@ -462,67 +385,6 @@ Chart.register(CategoryScale, LinearScale, BarController, BarElement, Tooltip, L
       font-weight: 500;
 
       &:hover { background: #5568d3; }
-    }
-
-    /* ── Period Filter ───────────────────────────────────── */
-    .period-filter {
-      display: flex;
-      gap: 0.5rem;
-      margin-bottom: 0.75rem;
-      flex-wrap: wrap;
-
-      button {
-        padding: 0.5rem 1rem;
-        border: 1px solid #d1d5db;
-        border-radius: 20px;
-        background: white;
-        color: #374151;
-        font-size: 0.875rem;
-        cursor: pointer;
-        transition: all 0.15s;
-
-        &:hover { border-color: #667eea; color: #667eea; }
-        &.active {
-          background: #667eea;
-          color: white;
-          border-color: #667eea;
-        }
-      }
-    }
-
-    .custom-date-range {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      flex-wrap: wrap;
-      margin-bottom: 0.75rem;
-    }
-
-    .date-label {
-      font-size: 0.8rem;
-      color: #6b7280;
-      font-weight: 500;
-    }
-
-    .date-input {
-      padding: 0.4rem 0.65rem;
-      border: 1px solid #d1d5db;
-      border-radius: 6px;
-      font-size: 0.875rem;
-      color: #374151;
-      background: white;
-      cursor: pointer;
-      &:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 2px rgba(102,126,234,0.2); }
-    }
-
-    .date-range-error {
-      font-size: 0.8rem;
-      color: #ef4444;
-      background: #fef2f2;
-      border: 1px solid #fca5a5;
-      border-radius: 6px;
-      padding: 0.4rem 0.75rem;
-      margin-bottom: 0.75rem;
     }
 
     .category-filter-bar {
@@ -564,6 +426,7 @@ Chart.register(CategoryScale, LinearScale, BarController, BarElement, Tooltip, L
       grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
       gap: 1rem;
       margin-bottom: 1.5rem;
+      margin-top: 1.5rem;
     }
 
     .widget {
@@ -631,15 +494,17 @@ Chart.register(CategoryScale, LinearScale, BarController, BarElement, Tooltip, L
       margin-bottom: 1rem;
     }
 
-    /* ── Banner ad ──────────────────────────────────────── */
-    .dashboard-banner-ad-wrapper {
-      margin: 1.5rem 0;
+    /* ── Ad Section Dividers ───────────────────────────── */
+    .ad-section-divider {
       display: flex;
       justify-content: center;
+      margin: 8px 0;
+      width: 100%;
+      min-height: 90px;
     }
 
     @media (max-width: 767px) {
-      .dashboard-banner-ad-wrapper { display: none; }
+      .ad-section-divider { display: none; }
     }
 
     /* ── Recent Transactions ─────────────────────────────── */
@@ -710,16 +575,6 @@ Chart.register(CategoryScale, LinearScale, BarController, BarElement, Tooltip, L
       &:hover { text-decoration: underline; }
     }
 
-    /* ── Ad Sidebar ──────────────────────────────────────── */
-    .ad-sidebar {
-      background: #f8fafc;
-      padding: 1.5rem 0.75rem;
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
-      padding-top: 3rem;
-    }
-
     /* ── Skeleton ────────────────────────────────────────── */
     .skeleton-container {
       max-width: 900px;
@@ -780,6 +635,13 @@ export class DashboardComponent implements OnInit {
   activeCategoryFilter = this.dashboardStateService.activeCategoryFilter;
   /** All loaded transactions (before filtering) — used to gate period controls visibility */
   transactions = this.dashboardStateService.transactions;
+
+  // ─── v2.0 Analytical widgets ───────────────────────────────────────────────
+  readonly expenseTree = this.dashboardStateService.expenseTree;
+  readonly incomeTree = this.dashboardStateService.incomeTree;
+  readonly investmentTree = this.dashboardStateService.investmentTree;
+  readonly transferTree = this.dashboardStateService.transferTree;
+  readonly activeAutoWidget = this.dashboardStateService.activeAutoWidget;
 
   // ─── Sync & Train state ────────────────────────────────────────────────────
   /** True while the sync operation is in progress; disables the trigger button. */
@@ -892,6 +754,22 @@ export class DashboardComponent implements OnInit {
 
   setActiveCategoryFilter(cat: string | null): void {
     this.dashboardStateService.setActiveCategoryFilter(cat);
+  }
+
+  // ─── v2.0 Analytical widget handlers ──────────────────────────────────────
+  onAutoToggle(type: 'expense' | 'investment' | 'income' | 'transfer', enabled: boolean): void {
+    this.dashboardStateService.setAutoWidget(enabled ? type : null);
+  }
+
+  onWidgetRowSelected(sel: WidgetSelection): void {
+    const autoWidget = this.activeAutoWidget();
+    if (autoWidget === sel.type.toLowerCase()) {
+      // Auto is ON for this widget type → immediate panel refresh
+      this.dashboardStateService.selectWidgetRow(sel);
+    } else {
+      // Auto is OFF → deferred; record pending, don't update panel yet
+      this.dashboardStateService.pendingDrilldownSelection.set(sel);
+    }
   }
 
   onDoughnutClick(event: { event?: ChartEvent; active?: object[] }): void {

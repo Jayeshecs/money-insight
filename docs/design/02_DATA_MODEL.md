@@ -478,4 +478,112 @@
 ## References
 
 - Architecture Design: [01_ARCHITECTURE.md](01_ARCHITECTURE.md)
+
+---
+
+## 6. Sprint 4 — Dashboard v2.0 Types (Angular / TypeScript)
+
+The following types are added to `src/app/core/models/data-models.ts` as part of Sprint 4 (Stories 017–020). They exist solely in the Angular client layer — they are **not** stored in IndexedDB and are **not** synced to Google Sheets.
+
+### 6.1 `Granularity`
+
+Controls the step size of the Granularity Bar range slider and the date format shown in period inputs.
+
+```typescript
+export type Granularity = 'yearly' | 'quarterly' | 'monthly';
+```
+
+| Value | Slider step | Date input format | Example |
+|-------|-------------|-------------------|---------|
+| `'monthly'` | 1 calendar month | `YYYY-MM` | `2024-03` |
+| `'quarterly'` | 1 calendar quarter | `YYYY-Q#` | `2024-Q1` |
+| `'yearly'` | 1 calendar year | `YYYY` | `2024` |
+
+### 6.2 `OverallSummary`
+
+Aggregated totals displayed in the Overall Summary Bar (Section 2). Computed by `DashboardStateService.overallSummary` from `Transaction[]` filtered by the active period and selected accounts. All values are absolute INR amounts.
+
+```typescript
+export interface OverallSummary {
+  income:     number;    // Sum of INCOME transactions in active period + account filter
+  expense:    number;    // Sum of EXPENSE transactions
+  investment: number;    // Sum of INVESTMENT transactions
+  transfer:   number;    // Sum of TRANSFER transactions
+}
+```
+
+**Derivation rule:** `overallSummary` uses `activePeriodStart/End` (applied values), **not** `pendingPeriodStart/End` (slider-in-progress values). The summary never reflects unapplied slider movements.
+
+### 6.3 `SubCategoryItem`
+
+A leaf node in a category tree widget representing one sub-category aggregate.
+
+```typescript
+export interface SubCategoryItem {
+  name:  string;    // Sub-category label (falls back to '(Uncategorised)' when Transaction.subCategory is null)
+  total: number;    // Sum of transaction amounts in this sub-category (absolute INR)
+}
+```
+
+### 6.4 `CategoryTree`
+
+A branch node representing one category and all its sub-categories. Used as `@Input() data: CategoryTree[]` for `AnalyticalWidgetComponent`.
+
+```typescript
+export interface CategoryTree {
+  category:      string;              // Category label (e.g., 'Lifestyle', 'Salary')
+  total:         number;              // Sum of ALL sub-category totals for this category
+  subCategories: SubCategoryItem[];   // Sorted descending by total
+}
+```
+
+**Sort rules:** `CategoryTree[]` is sorted **descending by `total`** at the top level. Each `subCategories` array is also sorted **descending by `total`** within its category.
+
+### 6.5 `WidgetSelection`
+
+Represents the currently highlighted row across all four Analytical Widgets. Stored in `DashboardStateService.activeWidgetSelection`. Drives `TransactionsPanelComponent` filtering when `activeAutoWidget` is non-null.
+
+```typescript
+// WidgetSelection.type uses TransactionType (ALL_CAPS) to match Transaction.transactionType
+export interface WidgetSelection {
+  type:         TransactionType;    // 'INCOME' | 'INVESTMENT' | 'EXPENSE' | 'TRANSFER'
+  category:     string;             // Selected Level 1 category name
+  subCategory?: string;             // Set when a Level 2 row is selected; absent for Level 1 selections
+}
+```
+
+**Key constraint:** At most one `WidgetSelection` is active at any time across all four widgets. The service holds a single `activeWidgetSelection: WritableSignal<WidgetSelection | null>`.
+
+### 6.6 Extended `DashboardSummary` (Sprint 4 additions)
+
+The existing `DashboardSummary` interface (used by v1 WASM output) gains two optional fields to support backward compat while the v2 `OverallSummary` computed signal is being adopted:
+
+```typescript
+// Additions to existing DashboardSummary interface in data-models.ts:
+export interface DashboardSummary {
+  // ... existing fields unchanged ...
+
+  // Sprint 4 additions (optional — populated by v2 DashboardStateService, not WASM):
+  totalInvestment?: number;    // Sum of INVESTMENT transactions in the active period
+  totalTransfer?:   number;    // Sum of TRANSFER transactions in the active period
+}
+```
+
+> **Note:** The primary source of truth for four-type totals in Dashboard v2.0 is `DashboardStateService.overallSummary: Signal<OverallSummary>`, not `DashboardSummary`. The `DashboardSummary.totalInvestment/totalTransfer` additions are for any legacy code paths that still reference `filteredSummary` during the Sprint 4 transition.
+
+### 6.7 Ad Slot Environment Configuration
+
+The following changes are made to the `adSlots` map in `src/environments/environment.ts`:
+
+```typescript
+// Removed (v1 slots):
+'sidebar-skyscraper': string;    // 160×600 — retired with v2.0 (no sidebar)
+'dashboard-banner':   string;    // 728×90  — retired with v2.0 (position now occupied by summary-banner)
+
+// Added (v2 slots):
+'dashboard-summary-banner': string;    // 728×90 — between OverallSummaryBar and WidgetsGrid
+'dashboard-widgets-banner': string;    // 728×90 — between WidgetsGrid and TransactionsPanel
+```
+
+Both new slots use empty strings (`''`) in `environment.ts` (development) and must be filled with real AdSense slot IDs in `environment.prod.ts` before production deployment.
 - FSD: [../specifications/fsd_1.0.md](../specifications/fsd_1.0.md)
